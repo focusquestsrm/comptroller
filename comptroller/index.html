@@ -1,0 +1,2166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Comptroller Intelligence Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0B1120;
+      --bg-deep: #070C18;
+      --panel: #111A30;
+      --panel-2: #16213D;
+      --line: #24314F;
+      --line-soft: #1B2742;
+      --text: #E9EEF9;
+      --muted: #97A3BE;
+      --faint: #66738F;
+      --gold: #D9AB52;
+      --gold-soft: rgba(217, 171, 82, .14);
+      --emerald: #34D399;
+      --amber: #F5B94F;
+      --red: #F87168;
+      --blue: #6C9BF2;
+      --shadow: 0 14px 40px rgba(2, 6, 16, .45);
+      --radius: 10px;
+      --header-bg: rgba(9, 14, 27, .88);
+      --hover-solid: #182340;
+      --insight-bg: #0E1730;
+      --insight-hover: #132043;
+      --insights-panel: linear-gradient(180deg, #0E1730, #0B1224);
+      --body-glow-a: rgba(217, 171, 82, .06);
+      --body-glow-b: rgba(108, 155, 242, .05);
+      --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      --sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg: #F2F5FA;
+      --bg-deep: #FFFFFF;
+      --panel: #FFFFFF;
+      --panel-2: #FAFBFE;
+      --line: #D8E0EE;
+      --line-soft: #E7EBF4;
+      --text: #131C33;
+      --muted: #52607E;
+      --faint: #8A96AD;
+      --gold: #A97F2C;
+      --gold-soft: rgba(169, 127, 44, .12);
+      --emerald: #0E9F73;
+      --amber: #C07E12;
+      --red: #D2443C;
+      --blue: #3563C4;
+      --shadow: 0 10px 30px rgba(19, 28, 51, .08);
+      --header-bg: rgba(250, 251, 254, .88);
+      --hover-solid: #EEF3FB;
+      --insight-bg: #FFFFFF;
+      --insight-hover: #F2F6FD;
+      --insights-panel: linear-gradient(180deg, #FFFFFF, #F7F9FD);
+      --body-glow-a: rgba(169, 127, 44, .05);
+      --body-glow-b: rgba(53, 99, 196, .04);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      background:
+        radial-gradient(1200px 500px at 80% -10%, var(--body-glow-a), transparent 60%),
+        radial-gradient(900px 500px at 0% 0%, var(--body-glow-b), transparent 55%),
+        var(--bg);
+      color: var(--text);
+      font-size: 13.5px;
+      font-variant-numeric: tabular-nums;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+
+    /* ---------- Login ---------- */
+    .login {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 32px;
+      background:
+        radial-gradient(900px 600px at 70% 20%, rgba(217, 171, 82, .10), transparent 60%),
+        linear-gradient(150deg, #0A1020, #0D1630 65%, #0A1020);
+    }
+
+    [data-theme="light"] .login {
+      background:
+        radial-gradient(900px 600px at 70% 20%, rgba(169, 127, 44, .08), transparent 60%),
+        linear-gradient(150deg, #EDF1F8, #FFFFFF 65%, #EDF1F8);
+    }
+
+    .login.hidden, .shell { display: none; }
+    .shell.active { display: block; }
+
+    .login-card {
+      width: min(440px, 100%);
+      background: linear-gradient(180deg, var(--panel-2), var(--panel));
+      border: 1px solid var(--line);
+      border-top: 2px solid var(--gold);
+      border-radius: var(--radius);
+      box-shadow: 0 40px 120px rgba(0, 0, 0, .55);
+      padding: 30px 28px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--gold), #A87F2E);
+      color: #14100A;
+      font-weight: 700;
+      font-family: var(--mono);
+      letter-spacing: .02em;
+      flex: 0 0 auto;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: clamp(17px, 2vw, 20px); line-height: 1.2; font-weight: 600; letter-spacing: -.01em; }
+    h2 { font-size: clamp(24px, 3vw, 32px); line-height: 1.12; font-weight: 600; letter-spacing: -.015em; }
+    h3 {
+      font-size: 11.5px;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      font-family: var(--mono);
+    }
+    p { color: var(--muted); line-height: 1.5; }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--bg-deep);
+      color: var(--text);
+      padding: 9px 12px;
+    }
+
+    input::placeholder, textarea::placeholder { color: var(--faint); }
+    input:focus, select:focus, textarea:focus { border-color: var(--gold); outline: none; }
+    select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 34px; }
+    select:disabled { opacity: .55; cursor: not-allowed; }
+    textarea { min-height: 86px; resize: vertical; }
+    input[type="file"] { padding: 8px; }
+    input[type="file"]::file-selector-button {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 6px 12px;
+      margin-right: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .button {
+      min-height: 42px;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      background: linear-gradient(160deg, var(--gold), #B98D35);
+      color: #171207;
+      padding: 0 16px;
+      font-weight: 700;
+      letter-spacing: .01em;
+      transition: filter .15s ease, transform .15s ease;
+    }
+
+    .button:hover { filter: brightness(1.08); }
+    .button:active { transform: translateY(1px); }
+    .button:disabled { filter: grayscale(.6) brightness(.8); cursor: not-allowed; }
+
+    .button.secondary {
+      background: transparent;
+      color: var(--text);
+      border-color: var(--line);
+    }
+
+    .button.secondary:hover { border-color: var(--gold); color: var(--gold); filter: none; }
+
+    .button.danger {
+      background: transparent;
+      color: var(--red);
+      border-color: rgba(248, 113, 104, .45);
+    }
+
+    .button.danger:hover { border-color: var(--red); filter: none; background: rgba(248, 113, 104, .08); }
+
+    .note { color: var(--faint); font-size: 12px; line-height: 1.5; }
+
+    /* ---------- Header ---------- */
+    .top-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid var(--line-soft);
+      background: var(--header-bg);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .header-shell {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .app-header {
+      min-height: 66px;
+      display: grid;
+      grid-template-columns: auto minmax(220px, 1fr) auto;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .app-identity { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .app-identity-text { display: grid; gap: 2px; min-width: 0; }
+    .app-identity-text p { font-size: 12px; color: var(--gold); letter-spacing: .12em; text-transform: uppercase; font-family: var(--mono); }
+
+    .header-center { min-width: 0; display: flex; justify-content: center; }
+    .header-meta { display: flex; align-items: center; justify-content: end; gap: 14px; min-width: 0; }
+
+    .search {
+      width: min(100%, 520px);
+      min-height: 38px;
+      border-radius: 999px;
+      background: var(--bg-deep);
+      padding-left: 16px;
+    }
+
+    .workspace-status { white-space: nowrap; min-height: 38px; }
+
+    .date-block {
+      display: grid;
+      gap: 2px;
+      color: var(--faint);
+      font-size: 11px;
+      text-align: right;
+      white-space: nowrap;
+      font-family: var(--mono);
+    }
+
+    .date-block strong { color: var(--text); font-weight: 600; }
+
+    .company-selector-row {
+      padding-bottom: 6px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .page-title-row {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 6px 0 18px;
+    }
+
+    .page-title-row p { margin-top: 8px; max-width: 920px; font-size: 13.5px; }
+
+    /* ---------- Layout ---------- */
+    main {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 22px 24px 56px;
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 14px;
+      animation: fade .25s ease-out;
+    }
+
+    @keyframes fade {
+      from { opacity: .6; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---------- Onboarding / empty states ---------- */
+    .setup-card {
+      grid-column: span 12;
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(217, 171, 82, .05), transparent);
+      padding: 40px 24px;
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .setup-card h2 { font-size: 22px; }
+    .setup-card p { max-width: 560px; }
+
+    .empty-msg {
+      display: grid;
+      place-items: center;
+      min-height: 180px;
+      color: var(--faint);
+      font-size: 12.5px;
+      text-align: center;
+      padding: 0 24px;
+      line-height: 1.6;
+    }
+
+    /* ---------- KPI rail ---------- */
+    .kpi-strip {
+      grid-column: span 12;
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      background: linear-gradient(180deg, var(--panel-2), var(--panel));
+      border: 1px solid var(--line);
+      border-top: 2px solid var(--gold);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .kpi {
+      min-height: 132px;
+      border: 0;
+      border-right: 1px solid var(--line-soft);
+      background: transparent;
+      padding: 16px 14px 12px;
+      text-align: left;
+      display: grid;
+      align-content: space-between;
+      color: inherit;
+      transition: background .15s ease;
+    }
+
+    .kpi:last-child { border-right: 0; }
+    .kpi:hover, .segment:hover, .chart-click:hover, .doc-row:hover { background: rgba(217, 171, 82, .05); }
+
+    .kpi-title {
+      color: var(--muted);
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      font-family: var(--mono);
+    }
+
+    .kpi-value {
+      margin-top: 9px;
+      font-size: clamp(24px, 2.4vw, 30px);
+      font-weight: 600;
+      font-family: var(--mono);
+      letter-spacing: -.02em;
+      color: var(--text);
+    }
+
+    .trend {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: end;
+      color: var(--faint);
+      font-size: 11px;
+    }
+
+    .trend strong { font-family: var(--mono); font-weight: 600; }
+    .trend strong.up { color: var(--emerald); }
+    .trend strong.down { color: var(--red); }
+
+    .spark { width: 76px; height: 30px; flex: 0 0 auto; }
+
+    /* ---------- Company switcher ---------- */
+    .switcher {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--bg-deep);
+      min-width: max-content;
+      width: 100%;
+    }
+
+    .segment {
+      min-height: 34px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 16px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex: 1 0 auto;
+      transition: color .15s ease, background .15s ease;
+    }
+
+    .segment.active { background: var(--gold); color: #171207; }
+
+    .segment.add {
+      color: var(--gold);
+      border: 1px dashed rgba(217, 171, 82, .5);
+    }
+
+    .segment.add:hover { background: var(--gold-soft); }
+
+    /* ---------- Panels ---------- */
+    .panel {
+      background: linear-gradient(180deg, var(--panel-2), var(--panel));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      min-height: 250px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      overflow: hidden;
+    }
+
+    .panel.span-3 { grid-column: span 3; }
+    .panel.span-4 { grid-column: span 4; }
+    .panel.span-5 { grid-column: span 5; }
+    .panel.span-6 { grid-column: span 6; }
+    .panel.span-12 { grid-column: span 12; }
+
+    .panel-head {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line-soft);
+      padding: 0 16px;
+    }
+
+    .panel-tools {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      color: var(--faint);
+      font-size: 11px;
+      font-family: var(--mono);
+    }
+
+    .tool {
+      min-height: 28px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 0 9px;
+      font-family: var(--mono);
+      transition: color .15s ease, border-color .15s ease;
+    }
+
+    .tool:hover { color: var(--gold); border-color: var(--gold); }
+    .tool.danger { color: var(--red); border-color: rgba(248, 113, 104, .4); }
+    .tool.danger:hover { border-color: var(--red); }
+
+    .panel-body { padding: 14px 16px 16px; }
+
+    .chart-click {
+      border: 0;
+      background: transparent;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      color: inherit;
+      text-align: left;
+      border-radius: 8px;
+      transition: background .15s ease;
+    }
+
+    svg.chart { width: 100%; min-height: 190px; display: block; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 11px;
+      font-family: var(--mono);
+    }
+
+    .legend span { display: inline-flex; align-items: center; }
+    .legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; background: var(--emerald); }
+    .legend span[data-c="amber"]::before { background: var(--amber); }
+    .legend span[data-c="blue"]::before { background: var(--blue); }
+    .legend span[data-c="red"]::before { background: var(--red); }
+
+    /* ---------- Heat map ---------- */
+    .heatmap {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      height: 200px;
+    }
+
+    .heat {
+      min-width: 0;
+      padding: 6px 4px;
+      border: 1px solid rgba(52, 211, 153, .35);
+      border-radius: 8px;
+      color: var(--emerald);
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--mono);
+      text-align: center;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+      display: grid;
+      place-items: center;
+      background: rgba(52, 211, 153, .10);
+      transition: transform .12s ease;
+    }
+
+    .heat:hover { transform: translateY(-1px); }
+    .heat.amber { background: rgba(245, 185, 79, .12); border-color: rgba(245, 185, 79, .4); color: var(--amber); }
+    .heat.red { background: rgba(248, 113, 104, .13); border-color: rgba(248, 113, 104, .45); color: var(--red); }
+    .heat.blue { background: rgba(108, 155, 242, .12); border-color: rgba(108, 155, 242, .4); color: var(--blue); }
+
+    /* ---------- AI insights ---------- */
+    .insights {
+      grid-column: span 12;
+      background: var(--insights-panel);
+      color: var(--text);
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      border-top: 2px solid var(--gold);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .insights .panel-head { border-bottom-color: var(--line-soft); }
+
+    .insight-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 1px;
+      background: var(--line-soft);
+    }
+
+    .insight {
+      border: 0;
+      background: var(--insight-bg);
+      color: var(--text);
+      padding: 18px 16px;
+      min-height: 186px;
+      text-align: left;
+      display: grid;
+      align-content: space-between;
+      transition: background .15s ease;
+    }
+
+    .insight:hover { background: var(--insight-hover); }
+
+    .priority {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 22px;
+      border-radius: 999px;
+      padding: 0 9px;
+      background: rgba(52, 211, 153, .14);
+      border: 1px solid rgba(52, 211, 153, .35);
+      color: var(--emerald);
+      font-size: 10px;
+      font-weight: 600;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+
+    .priority.red { background: rgba(248, 113, 104, .13); border-color: rgba(248, 113, 104, .4); color: var(--red); }
+    .priority.amber { background: rgba(245, 185, 79, .12); border-color: rgba(245, 185, 79, .4); color: var(--amber); }
+
+    .insight strong { display: block; margin: 12px 0 7px; font-size: 15px; line-height: 1.3; font-weight: 600; }
+    .insight p { color: var(--muted); font-size: 12px; }
+
+    .insight-metrics {
+      display: grid;
+      gap: 6px;
+      margin-top: 14px;
+      color: var(--faint);
+      font-size: 11px;
+      font-family: var(--mono);
+    }
+
+    .insight-metrics span:last-child { color: var(--gold); }
+
+    .priority-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px 20px;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line-soft);
+      color: var(--muted);
+      font-size: 11.5px;
+    }
+
+    .priority-legend > span { display: inline-flex; align-items: center; gap: 8px; }
+
+    /* ---------- Shared views ---------- */
+    .view-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+      padding: 9px 14px;
+      border: 1px solid rgba(217, 171, 82, .45);
+      background: var(--gold-soft);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 12.5px;
+    }
+
+    .view-list { display: grid; gap: 8px; }
+
+    .view-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: var(--bg-deep);
+    }
+
+    .view-row strong { font-weight: 600; }
+    .view-row .note { width: 100%; }
+    .view-row-tools { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .check-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 14px;
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .check input { width: 16px; min-height: 16px; accent-color: var(--gold); flex: 0 0 auto; }
+
+    /* ---------- Table ---------- */
+    .table-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .table-search { width: 200px; min-height: 32px; font-size: 12px; border-radius: 999px; padding-left: 14px; }
+
+    .table-wrap { overflow: auto; max-height: 380px; -webkit-overflow-scrolling: touch; }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 12.5px;
+      min-width: 960px;
+      font-family: var(--mono);
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--panel-2);
+      color: var(--muted);
+      text-align: right;
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      font-weight: 600;
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    th:hover { color: var(--gold); }
+    th:first-child, td:first-child { text-align: left; }
+
+    th:first-child, td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: var(--panel);
+    }
+
+    th:first-child { z-index: 3; background: var(--panel-2); }
+
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line-soft);
+      text-align: right;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    td strong { font-family: var(--sans); font-weight: 600; }
+    tr { cursor: pointer; }
+    tbody tr:hover td { background: rgba(217, 171, 82, .05); }
+    tbody tr:hover td:first-child { background: var(--hover-solid); }
+
+    .health-cell { display: inline-flex; align-items: center; gap: 8px; justify-content: flex-end; }
+    .health-bar { width: 46px; height: 5px; border-radius: 999px; background: var(--bg-deep); border: 1px solid var(--line-soft); overflow: hidden; }
+    .health-bar i { display: block; height: 100%; background: linear-gradient(90deg, #1FA97C, var(--emerald)); }
+    .health-bar.warn i { background: linear-gradient(90deg, #C98F2B, var(--amber)); }
+
+    .trend-up { color: var(--emerald); }
+    .trend-down { color: var(--red); }
+
+    .risk-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      border-radius: 999px;
+      padding: 0 10px;
+      color: var(--emerald);
+      background: rgba(52, 211, 153, .12);
+      border: 1px solid rgba(52, 211, 153, .35);
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .risk-pill.medium { background: rgba(245, 185, 79, .12); border-color: rgba(245, 185, 79, .4); color: var(--amber); }
+    .risk-pill.high { background: rgba(248, 113, 104, .13); border-color: rgba(248, 113, 104, .45); color: var(--red); }
+
+    /* ---------- Detail workspace ---------- */
+    .detail-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 16px 0; }
+
+    .detail-tab {
+      min-height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 12px;
+      font-size: 12px;
+      font-weight: 600;
+      transition: color .15s ease, background .15s ease, border-color .15s ease;
+    }
+
+    .detail-tab:hover { color: var(--gold); border-color: var(--gold); }
+    .detail-tab.active { background: var(--gold); border-color: var(--gold); color: #171207; }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .detail-box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--bg-deep);
+      padding: 14px;
+      min-height: 104px;
+      transition: border-color .15s ease;
+    }
+
+    .detail-box:hover { border-color: var(--gold); background: var(--bg-deep); }
+
+    .detail-box span {
+      display: block;
+      color: var(--faint);
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      font-family: var(--mono);
+    }
+
+    .detail-box strong {
+      display: block;
+      margin-top: 9px;
+      color: var(--text);
+      font-size: 22px;
+      font-family: var(--mono);
+      font-weight: 600;
+    }
+
+    .detail-box p { font-size: 11.5px; margin-top: 4px; }
+
+    /* ---------- Lower grid / upload ---------- */
+    .lower-grid {
+      grid-column: span 12;
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 14px;
+    }
+
+    .upload-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .full { grid-column: 1 / -1; }
+
+    .doc-row {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--bg-deep);
+      padding: 12px;
+      text-align: left;
+      display: grid;
+      gap: 4px;
+      margin-bottom: 8px;
+      color: inherit;
+      transition: border-color .15s ease;
+    }
+
+    .doc-row:hover { border-color: var(--gold); }
+    .doc-row strong { font-weight: 600; }
+
+    /* ---------- Dialogs ---------- */
+    dialog {
+      width: min(760px, calc(100% - 24px));
+      border: 1px solid var(--line);
+      border-top: 2px solid var(--gold);
+      border-radius: var(--radius);
+      padding: 0;
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: 0 40px 120px rgba(0, 0, 0, .6);
+    }
+
+    dialog::backdrop { background: rgba(4, 8, 18, .7); backdrop-filter: blur(3px); }
+
+    .modal { display: grid; gap: 16px; padding: 20px; }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 1px solid var(--line-soft);
+      padding-bottom: 14px;
+    }
+
+    .modal-section { display: grid; gap: 6px; }
+    .modal-section p { font-size: 12.5px; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      border-top: 1px solid var(--line-soft);
+      padding-top: 14px;
+    }
+
+    .modal-actions .danger { margin-right: auto; }
+
+    .close {
+      min-width: 36px;
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
+      font-weight: 600;
+      flex: 0 0 auto;
+    }
+
+    .close:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1260px) {
+      .header-shell { padding: 0 16px; }
+      .app-header { grid-template-columns: 1fr auto; gap: 12px; padding-top: 12px; }
+      .header-center { grid-column: 1 / -1; grid-row: 2; }
+      .search { width: 100%; }
+      .kpi-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .kpi { border-bottom: 1px solid var(--line-soft); }
+      .panel.span-3, .panel.span-4, .panel.span-5, .panel.span-6 { grid-column: span 6; }
+      .insight-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .lower-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 820px) {
+      .header-shell { padding: 0 12px; gap: 12px; }
+      .app-header { grid-template-columns: 1fr; min-height: auto; padding-top: 12px; }
+      .header-meta { justify-content: space-between; width: 100%; }
+      .page-title-row { display: grid; padding-bottom: 16px; }
+      main { padding: 14px 12px 48px; }
+      .kpi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .detail-grid, .upload-grid, .form-grid, .check-grid { grid-template-columns: 1fr; }
+      .kpi { border-right: 0; border-bottom: 1px solid var(--line-soft); }
+      .switcher { width: max-content; }
+      .segment { flex: 0 0 auto; min-height: 40px; }
+      .panel.span-3, .panel.span-4, .panel.span-5, .panel.span-6 { grid-column: span 12; }
+      .panel { min-height: 0; }
+      .insight-grid { grid-template-columns: 1fr; }
+      .table-search { width: 100%; }
+      .table-tools { width: 100%; }
+      .panel-head { flex-wrap: wrap; padding: 10px 14px; }
+    }
+
+    @media (max-width: 520px) {
+      .kpi-strip { grid-template-columns: 1fr 1fr; }
+      .kpi { min-height: 116px; }
+      .kpi-value { font-size: 22px; }
+      .header-meta { display: grid; justify-content: stretch; gap: 10px; }
+      .date-block { text-align: left; }
+      .workspace-status { width: 100%; }
+      .heatmap { height: auto; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .heat { min-height: 52px; }
+    }
+  </style>
+</head>
+<body>
+  <section class="login" id="loginScreen" aria-label="Secure login">
+    <form class="login-card" id="loginForm">
+      <div class="brand">
+        <div class="brand-mark">LV</div>
+        <div>
+          <h1>Comptroller Intelligence Agent</h1>
+          <p>Lead Ventures secure workspace</p>
+        </div>
+      </div>
+      <label>Email <input id="loginEmail" type="email" placeholder="you@leadventures.com" autocomplete="username" required></label>
+      <button class="button" type="submit" id="loginBtn">Email me a sign-in link</button>
+      <p class="note" id="loginMsg" hidden></p>
+      <p class="note">Access is limited to authorized Lead Ventures accounts. We email a secure one-time sign-in link — there's no password to remember. Sessions are gated by Supabase Auth with row-level security on every table.</p>
+    </form>
+  </section>
+
+  <div class="shell" id="appShell">
+    <header class="top-header">
+      <div class="header-shell">
+        <div class="app-header">
+          <div class="app-identity">
+            <div class="brand-mark">LV</div>
+            <div class="app-identity-text">
+              <h1>Comptroller Intelligence Agent</h1>
+              <p>Lead Ventures</p>
+            </div>
+          </div>
+          <div class="header-center">
+            <input class="search" id="globalSearch" placeholder="Global search">
+          </div>
+          <div class="header-meta">
+            <div class="date-block">
+              <strong id="currentDate"></strong>
+              <span id="lastRefresh"></span>
+            </div>
+            <button class="button secondary workspace-status" type="button" id="themeToggle" title="Switch color theme" aria-label="Switch color theme">◐ Dark</button>
+            <button class="button secondary workspace-status" type="button" id="viewsBtn">Views</button>
+            <button class="button secondary workspace-status" type="button" data-drill="Workspace status">Workspace Status</button>
+            <button class="button secondary workspace-status" type="button" id="signOutBtn">Sign out</button>
+          </div>
+        </div>
+        <div class="company-selector-row">
+          <section class="switcher" id="companySwitcher" aria-label="Company selector"></section>
+        </div>
+        <div class="view-banner" id="viewBanner" hidden></div>
+        <section class="page-title-row">
+          <div>
+            <h2>Executive Financial Intelligence Workspace</h2>
+            <p>Institutional view of cash, debt, revenue, obligations, risk, source confidence, and AI recommendations across Sean's Lead Ventures companies.</p>
+          </div>
+        </section>
+      </div>
+    </header>
+
+    <main id="mainGrid">
+      <section class="kpi-strip" id="kpiStrip" aria-label="Executive KPI strip"></section>
+
+      <section class="panel span-4">
+        <div class="panel-head"><h3>Revenue vs Expenses</h3><div class="panel-tools"><button class="tool" data-drill="Zoom Revenue vs Expenses">Zoom</button><span>USD</span></div></div>
+        <div class="panel-body" id="revenueChart"></div>
+      </section>
+      <section class="panel span-4">
+        <div class="panel-head"><h3>Cash Flow Trend</h3><div class="panel-tools"><button class="tool" data-drill="Zoom Cash Flow Trend">Zoom</button><span>MTD</span></div></div>
+        <div class="panel-body" id="cashFlowChart"></div>
+      </section>
+      <section class="panel span-4">
+        <div class="panel-head"><h3>30/60/90 Forecast</h3><div class="panel-tools"><button class="tool" data-drill="Zoom Forecast">Zoom</button><span>Scenario</span></div></div>
+        <div class="panel-body" id="forecastChart"></div>
+      </section>
+
+      <section class="panel span-6">
+        <div class="panel-head"><h3>Company Bubble Chart</h3><div class="panel-tools"><span>Cash x Debt x Obligations</span></div></div>
+        <div class="panel-body" id="bubbleChart"></div>
+      </section>
+      <section class="panel span-6">
+        <div class="panel-head"><h3>Risk Heat Map</h3><div class="panel-tools"><span>Severity</span></div></div>
+        <div class="panel-body" id="riskHeatMap"></div>
+      </section>
+
+      <section class="insights" id="insightsPanel">
+        <div class="panel-head"><h3>AI Executive Insights</h3><div class="panel-tools"><span>Bloomberg-style intelligence</span></div></div>
+        <div class="priority-legend">
+          <span><span class="priority red">Red</span> Critical — act immediately</span>
+          <span><span class="priority amber">Amber</span> Needs attention this cycle</span>
+          <span><span class="priority">Green</span> Healthy — optimization opportunity</span>
+        </div>
+        <div class="insight-grid" id="insightGrid"></div>
+      </section>
+
+      <section class="panel span-12" id="comparisonPanel">
+        <div class="panel-head">
+          <h3>Company Comparison Table</h3>
+          <div class="table-tools">
+            <input class="table-search" id="tableSearch" placeholder="Filter companies">
+            <button class="tool" type="button" data-export="Excel">Excel</button>
+            <button class="tool" type="button" data-export="PDF">PDF</button>
+            <button class="tool" type="button" data-export="CSV">CSV</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th data-sort="name">Company</th>
+                <th data-sort="cash">Cash</th>
+                <th data-sort="debt">Debt</th>
+                <th data-sort="revenue">Revenue</th>
+                <th data-sort="expenses">Expenses</th>
+                <th data-sort="profit">Profit</th>
+                <th data-sort="health">Health Score</th>
+                <th data-sort="risk">Risk</th>
+                <th data-sort="credit">Credit Utilization</th>
+                <th data-sort="trend">Trend</th>
+              </tr>
+            </thead>
+            <tbody id="companyRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel span-12" id="companyWorkspace">
+        <div class="panel-head">
+          <h3>Company Detail Workspace</h3>
+          <div class="panel-tools">
+            <span id="workspaceContext">Overview</span>
+            <button class="tool" type="button" id="editCompanyBtn" hidden>Edit</button>
+            <button class="tool danger" type="button" id="deleteCompanyBtn" hidden>Delete</button>
+          </div>
+        </div>
+        <div class="detail-tabs" id="detailTabs"></div>
+        <div class="panel-body" id="companyDetails"></div>
+      </section>
+
+      <section class="lower-grid" id="lowerGrid">
+        <section class="panel" id="uploadPanel">
+          <div class="panel-head"><h3>Upload Center</h3><button class="tool" type="button" id="clearUpload">Clear</button></div>
+          <div class="panel-body">
+            <form class="upload-grid" id="uploadForm">
+              <label>Company
+                <select id="companyInput" required>
+                  <option value="">Select company</option>
+                </select>
+              </label>
+              <label>Document type
+                <select id="typeInput" required>
+                  <option value="">Select type</option>
+                  <option>Credit card statements</option>
+                  <option>Bank statements</option>
+                  <option>Car loans</option>
+                  <option>Office expenses</option>
+                  <option>Mortgage or rent</option>
+                  <option>Insurance</option>
+                  <option>Invoices</option>
+                  <option>Payroll</option>
+                  <option>Tax documents</option>
+                </select>
+              </label>
+              <label>Document name <input id="nameInput" placeholder="Example: June card statement" required></label>
+              <label>Amount <input id="amountInput" type="number" min="0" step="100" placeholder="0"></label>
+              <label class="full">File <input id="fileInput" type="file" multiple required></label>
+              <label class="full">Analysis note <textarea id="noteInput" placeholder="Source context, assumptions, or comptroller note"></textarea></label>
+              <button class="button full" type="submit" id="uploadSubmit">Add Document to Analysis Queue</button>
+              <p class="note full" id="uploadHint" hidden>Add a company first — document uploads are organized by company.</p>
+            </form>
+          </div>
+        </section>
+        <section class="panel" id="docsPanel">
+          <div class="panel-head"><h3>Recent Documents Analyzed</h3><div class="panel-tools"><span id="docCount">0 files</span></div></div>
+          <div class="panel-body" id="documentsList"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="drillDialog">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h2 id="drillTitle">Drill-down</h2>
+          <p id="drillSubtitle"></p>
+        </div>
+        <button class="close" type="button" id="closeDrill">✕</button>
+      </div>
+      <div class="modal-section"><h3>Source Data</h3><p id="drillSource"></p></div>
+      <div class="modal-section"><h3>Calculation Details</h3><p id="drillCalc"></p></div>
+      <div class="modal-section"><h3>Supporting Documents</h3><p id="drillDocs"></p></div>
+      <div class="modal-section"><h3>Assumptions</h3><p id="drillAssumptions"></p></div>
+      <div class="modal-section"><h3>Confidence</h3><p id="drillConfidence"></p></div>
+    </div>
+  </dialog>
+
+  <dialog id="companyDialog">
+    <form class="modal" id="companyForm">
+      <div class="modal-head">
+        <div>
+          <h2 id="companyDialogTitle">Add Company</h2>
+          <p>Only the name is required. Financials can be added or updated any time, or filled in later from analyzed documents.</p>
+        </div>
+        <button class="close" type="button" id="closeCompanyDialog">✕</button>
+      </div>
+      <div class="form-grid">
+        <label class="full">Company name <input id="cName" required placeholder="Example: Back2Learn"></label>
+        <label>Cash on hand <input id="cCash" type="number" min="0" step="100" placeholder="0"></label>
+        <label>Debt (cards, loans, 60+ obligations) <input id="cDebt" type="number" min="0" step="100" placeholder="0"></label>
+        <label>Revenue (year to date) <input id="cRevenue" type="number" min="0" step="100" placeholder="0"></label>
+        <label>Expenses (year to date) <input id="cExpenses" type="number" min="0" step="100" placeholder="0"></label>
+        <label>Obligations due (60+ days) <input id="cObligations" type="number" min="0" step="100" placeholder="0"></label>
+        <label>Projected cash (90-day) <input id="cProjected" type="number" min="0" step="100" placeholder="0"></label>
+        <label>Credit utilization % <input id="cCredit" type="number" min="0" max="100" step="1" placeholder="0"></label>
+      </div>
+      <div class="modal-actions">
+        <button class="button danger" type="button" id="deleteInDialog" hidden>Delete Company</button>
+        <button class="button secondary" type="button" id="cancelCompany">Cancel</button>
+        <button class="button" type="submit" id="saveCompany">Save Company</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="viewDialog">
+    <form class="modal" id="viewForm">
+      <div class="modal-head">
+        <div>
+          <h2>Shared Views</h2>
+          <p>Create filtered views to present to partners or team members — choose which companies and panels they see. Presentation-only for now: real per-person access control arrives with user accounts.</p>
+        </div>
+        <button class="close" type="button" id="closeViewDialog">✕</button>
+      </div>
+      <div class="modal-section">
+        <h3>Saved Views</h3>
+        <div class="view-list" id="viewList"></div>
+      </div>
+      <div class="modal-section">
+        <h3 id="viewFormTitle">New View</h3>
+        <label>View name <input id="vName" placeholder="Example: Partner View — FocusQuest"></label>
+      </div>
+      <div class="modal-section">
+        <h3>Companies included</h3>
+        <div class="check-grid" id="vCompanies"></div>
+      </div>
+      <div class="modal-section">
+        <h3>Panels shown</h3>
+        <div class="check-grid">
+          <label class="check"><input type="checkbox" id="vInsights" checked> AI Executive Insights</label>
+          <label class="check"><input type="checkbox" id="vTable" checked> Company Comparison Table</label>
+          <label class="check"><input type="checkbox" id="vDocs"> Documents list</label>
+        </div>
+        <p class="note">The Upload Center, company editing, and view management are always hidden while presenting.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="button secondary" type="button" id="vReset">Clear Form</button>
+        <button class="button" type="submit">Save View</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    /* ================= Data layer =================
+       Companies and documents live in Supabase (Postgres) — see
+       supabase/migrations/0001_init_companies_documents.sql. Only the raw
+       figures the user types are stored; health score, risk level, working
+       capital, trend, and confidence stay derived in this file, never stored.
+       Shared Views and theme remain in localStorage (presentation/preference).
+
+       The browser uses ONLY the public anon (publishable) key. That key is
+       safe in client code because Auth + row-level security gate every table.
+       Secret keys (service_role, Gemini) never appear here. */
+
+    const SUPABASE_URL = "https://reilvydggsivzwdunrrq.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJlaWx2eWRnZ3Npdnp3ZHVucnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NjAwMzMsImV4cCI6MjA5OTUzNjAzM30.sbCM3esc7T27HqyHEe5UfeWC4cRT0KpqXi1P1AkXc5I"; // public anon key — safe in client (gated by RLS)
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    /* Only these addresses may request a sign-in link. Keep in sync with the
+       app_members table in the SQL migration — that table is the real
+       enforcement (via RLS); this list just avoids emailing links to strangers. */
+    const ALLOWED_EMAILS = ["danniejenn@gmail.com", "sean@back2learn.com"];
+    const isAllowed = (email) => !!email && ALLOWED_EMAILS.includes(String(email).trim().toLowerCase());
+
+    function load(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch { return fallback; }
+    }
+
+    /* Non-blocking, always-visible feedback (Supabase errors, auth messages). */
+    function toast(message, kind) {
+      let el = document.querySelector("#toast");
+      if (!el) {
+        el = document.createElement("div");
+        el.id = "toast";
+        el.style.cssText = "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);max-width:90vw;z-index:9999;padding:12px 16px;border-radius:8px;font-family:var(--sans);font-weight:600;font-size:13px;box-shadow:var(--shadow);border:1px solid var(--line);background:var(--panel);color:var(--text);";
+        document.body.appendChild(el);
+      }
+      el.textContent = message;
+      el.style.borderColor = kind === "error" ? "var(--red)" : "var(--line)";
+      el.style.color = kind === "error" ? "var(--red)" : "var(--text)";
+      el.style.background = kind === "error" ? "rgba(248,113,104,.14)" : "var(--panel)";
+      el.style.display = "block";
+      clearTimeout(el._timer);
+      el._timer = setTimeout(() => { el.style.display = "none"; }, kind === "error" ? 6000 : 3500);
+    }
+
+    /* In-memory working cache, hydrated from Supabase on sign-in. Postgres
+       numeric columns come back as strings, so every figure is Number()-coerced. */
+    let companies = {};
+    let documents = [];
+
+    const fmtAdded = (ts) => ts ? new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
+
+    function shapeCompany(row) {
+      return {
+        name: row.name,
+        cash: Number(row.cash), debt: Number(row.debt), revenue: Number(row.revenue),
+        expenses: Number(row.expenses), obligations: Number(row.obligations),
+        projected: Number(row.projected), credit: Number(row.credit)
+      };
+    }
+
+    function shapeDoc(row) {
+      return {
+        id: row.id,
+        companyId: row.company_id,
+        companyName: companies[row.company_id]?.name || "",
+        type: row.type,
+        name: row.name,
+        amount: Number(row.amount),
+        note: row.note || "",
+        files: row.file_names || [],
+        added: fmtAdded(row.created_at),
+        created_at: row.created_at
+      };
+    }
+
+    async function loadData() {
+      companies = {};
+      documents = [];
+      const [cRes, dRes] = await Promise.all([
+        supabase.from("companies").select("*"),
+        supabase.from("documents").select("*").order("created_at", { ascending: false })
+      ]);
+      if (cRes.error) toast("Could not load companies: " + cRes.error.message, "error");
+      (cRes.data || []).forEach((r) => { companies[r.id] = shapeCompany(r); });
+      if (dRes.error) toast("Could not load documents: " + dRes.error.message, "error");
+      documents = (dRes.data || []).map(shapeDoc);
+    }
+
+    /* Shared views — named, filtered presentations of the workspace */
+    const VIEWS_KEY = "cia-views-v1";
+    const ACTIVE_VIEW_KEY = "cia-active-view";
+    let views = load(VIEWS_KEY, {});
+    let activeViewId = load(ACTIVE_VIEW_KEY, null);
+    let editingViewId = null;
+
+    function persistViews() {
+      try {
+        localStorage.setItem(VIEWS_KEY, JSON.stringify(views));
+        localStorage.setItem(ACTIVE_VIEW_KEY, JSON.stringify(activeViewId));
+      } catch {}
+    }
+
+    function activeView() {
+      return (activeViewId && views[activeViewId]) || null;
+    }
+
+    let activeKey = "overall";
+    let activeTab = "Overview";
+    let sortKey = "name";
+    let sortDir = 1;
+    let editingId = null;
+
+    const allCompanyKeys = () => Object.keys(companies).sort((a, b) => companies[a].name.localeCompare(companies[b].name));
+    const companyKeys = () => {
+      const v = activeView();
+      const keys = allCompanyKeys();
+      return v ? keys.filter((k) => v.companies.includes(k)) : keys;
+    };
+    const hasCompanies = () => allCompanyKeys().length > 0;
+
+    const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+    function docsFor(id) {
+      return documents.filter((d) => d.companyId === id);
+    }
+
+    /* Derived metrics — the formulas surfaced in every drill-down */
+    function decorate(raw, id) {
+      const c = { id, ...raw };
+      c.profit = c.revenue - c.expenses;
+      c.workingCapital = c.cash - c.obligations;
+      const margin = c.revenue > 0 ? c.profit / c.revenue : 0;
+      const debtRatio = Math.min(c.debt / Math.max(c.cash, 1), 1.5);
+      const oblRatio = Math.min(c.obligations / Math.max(c.cash, 1), 1.2);
+      c.health = clamp(Math.round(55 + margin * 80 - debtRatio * 18 - Math.max(c.credit - 30, 0) * 0.35), 20, 98);
+      c.riskScore = clamp(Math.round(debtRatio * 35 + c.credit * 0.45 + oblRatio * 30), 4, 96);
+      c.risk = c.riskScore >= 55 ? "High" : c.riskScore >= 32 ? "Medium" : "Low";
+      c.trend = c.projected >= c.cash * 0.98 ? "up" : "down";
+      c.confidence = clamp(45 + docsFor(id).length * 12, 45, 95);
+      return c;
+    }
+
+    function overall() {
+      const keys = companyKeys();
+      const sum = (field) => keys.reduce((total, k) => total + (companies[k][field] || 0), 0);
+      const avg = (field, list) => list.length ? Math.round(list.reduce((t, v) => t + v, 0) / list.length) : 0;
+      const decorated = keys.map((k) => decorate(companies[k], k));
+      const v = activeView();
+      const c = {
+        id: "overall",
+        name: v ? v.name : "Lead Ventures Overall",
+        cash: sum("cash"), debt: sum("debt"), revenue: sum("revenue"), expenses: sum("expenses"),
+        obligations: sum("obligations"), projected: sum("projected"),
+        credit: avg("credit", keys.map((k) => companies[k].credit || 0))
+      };
+      c.profit = c.revenue - c.expenses;
+      c.workingCapital = c.cash - c.obligations;
+      c.health = avg("health", decorated.map((d) => d.health)) || 0;
+      c.riskScore = avg("riskScore", decorated.map((d) => d.riskScore)) || 0;
+      c.risk = c.riskScore >= 55 ? "High" : c.riskScore >= 32 ? "Medium" : "Low";
+      c.trend = c.projected >= c.cash * 0.98 ? "up" : "down";
+      c.confidence = avg("confidence", decorated.map((d) => d.confidence)) || 45;
+      return c;
+    }
+
+    function current() {
+      if (activeKey === "overall" || !companies[activeKey]) return overall();
+      return decorate(companies[activeKey], activeKey);
+    }
+
+    function filteredDocs() {
+      if (activeKey === "overall") return documents;
+      return docsFor(activeKey);
+    }
+
+    const money = (value) => value.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+    const compact = (value) => {
+      const abs = Math.abs(value);
+      if (abs >= 1000000) return "$" + (value / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+      return "$" + Math.round(value / 1000) + "K";
+    };
+
+    /* ================= Theme ================= */
+    const THEME_KEY = "cia-theme";
+    const PALETTES = {
+      dark: { emerald: "#34D399", amber: "#F5B94F", red: "#F87168", blue: "#6C9BF2", gold: "#D9AB52", grid: "#22304D", label: "#66738F", dot: "#0B1120" },
+      light: { emerald: "#0E9F73", amber: "#C07E12", red: "#D2443C", blue: "#3563C4", gold: "#A97F2C", grid: "#DCE3F0", label: "#8A96AD", dot: "#FFFFFF" }
+    };
+    let theme = load(THEME_KEY, null) || "dark";
+    let C = { ...PALETTES[theme] };
+
+    function applyTheme(next, rerender) {
+      theme = next;
+      C = { ...PALETTES[theme] };
+      document.documentElement.dataset.theme = theme;
+      const toggle = document.querySelector("#themeToggle");
+      if (toggle) toggle.textContent = theme === "dark" ? "◐ Dark" : "◑ Light";
+      try { localStorage.setItem(THEME_KEY, JSON.stringify(theme)); } catch {}
+      if (rerender) renderAll();
+    }
+
+    /* ================= Drill-down ================= */
+    function drill(title, subtitle) {
+      const c = current();
+      const docs = filteredDocs().map((doc) => doc.name).join(", ") || "No assigned documents in this view.";
+      document.querySelector("#drillTitle").textContent = title;
+      document.querySelector("#drillSubtitle").textContent = subtitle || c.name;
+      document.querySelector("#drillSource").textContent = hasCompanies()
+        ? "Company figures entered in setup plus uploaded bank statements, credit card statements, loans, invoices, payroll, tax documents, and insurance records."
+        : "No companies configured yet. Add a company to begin building source data.";
+      document.querySelector("#drillCalc").textContent = "Derived metrics: profit = revenue − expenses; working capital = cash − 60+ day obligations; health score blends profit margin, debt-to-cash ratio, and credit utilization; risk score weighs debt ratio, credit utilization, and aged obligations; confidence grows with document coverage (each analyzed document adds 12 points, capped at 95%).";
+      document.querySelector("#drillDocs").textContent = docs;
+      document.querySelector("#drillAssumptions").textContent = "Prototype calculations use manually entered figures and should be replaced by ledger, bank, card, and document-extraction feeds in production.";
+      document.querySelector("#drillConfidence").textContent = c.confidence + "% source confidence for the current company context.";
+      document.querySelector("#drillDialog").showModal();
+    }
+
+    /* ================= Charts ================= */
+    function hashSeed(str) {
+      let h = 2166136261;
+      for (const ch of str) { h = (h ^ ch.charCodeAt(0)) * 16777619 >>> 0; }
+      return h;
+    }
+
+    function seededSeries(seedStr, base, volatility, points, drift) {
+      let h = hashSeed(seedStr);
+      const out = [];
+      let value = base * (0.88 + ((h % 1000) / 1000) * 0.1);
+      for (let i = 0; i < points; i++) {
+        h = (h * 1664525 + 1013904223) >>> 0;
+        const r = (h / 4294967296) - 0.5;
+        value = value * drift + base * volatility * r;
+        out.push(Math.max(value, base * 0.35));
+      }
+      return out;
+    }
+
+    function smoothPath(pts) {
+      return pts.map((p, i) => {
+        if (i === 0) return `M${p[0].toFixed(1)},${p[1].toFixed(1)}`;
+        const prev = pts[i - 1];
+        const cx = ((prev[0] + p[0]) / 2).toFixed(1);
+        return `C${cx},${prev[1].toFixed(1)} ${cx},${p[1].toFixed(1)} ${p[0].toFixed(1)},${p[1].toFixed(1)}`;
+      }).join(" ");
+    }
+
+    function emptyChart(message) {
+      return `<div class="empty-msg">${message}</div>`;
+    }
+
+    function buildLineChart({ title, id, seriesList, xLabels, drillLabel }) {
+      const W = 560, H = 236, L = 52, R = 542, T = 18, B = 192;
+      const all = seriesList.flatMap((s) => s.data);
+      const min = Math.min(...all), max = Math.max(...all);
+      const pad = (max - min) * 0.18 || max * 0.1 || 1;
+      const lo = Math.max(0, min - pad), hi = max + pad;
+      const y = (v) => B - ((v - lo) / (hi - lo)) * (B - T);
+      const x = (i, n) => L + (i / (n - 1)) * (R - L);
+
+      const gridVals = [0.25, 0.5, 0.75].map((f) => lo + (hi - lo) * f);
+      const grid = gridVals.map((v) =>
+        `<line x1="${L}" y1="${y(v).toFixed(1)}" x2="${R}" y2="${y(v).toFixed(1)}" stroke="${C.grid}" stroke-width="1" stroke-dasharray="2 5"/>
+         <text x="${L - 8}" y="${(y(v) + 3.5).toFixed(1)}" fill="${C.label}" font-size="10" font-family="IBM Plex Mono, monospace" text-anchor="end">${compact(v)}</text>`
+      ).join("");
+
+      const defs = seriesList.map((s, i) => s.area ? `
+        <linearGradient id="${id}-g${i}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${s.color}" stop-opacity=".28"/>
+          <stop offset="100%" stop-color="${s.color}" stop-opacity="0"/>
+        </linearGradient>` : "").join("");
+
+      const paths = seriesList.map((s, i) => {
+        const pts = s.data.map((v, idx) => [x(idx, s.data.length), y(v)]);
+        const line = smoothPath(pts);
+        const last = pts[pts.length - 1];
+        const area = s.area ? `<path d="${line} L${R},${B} L${L},${B} Z" fill="url(#${id}-g${i})" stroke="none"/>` : "";
+        const endLabel = `<circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4" fill="${s.color}" stroke="${C.dot}" stroke-width="2"/>
+          <text x="${(last[0] - 6).toFixed(1)}" y="${(last[1] - 10).toFixed(1)}" fill="${s.color}" font-size="11" font-weight="600" font-family="IBM Plex Mono, monospace" text-anchor="end">${compact(s.data[s.data.length - 1])}</text>`;
+        return `${area}<path d="${line}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linecap="round" ${s.dashed ? 'stroke-dasharray="6 6"' : ""}/>${endLabel}`;
+      }).join("");
+
+      const xAxis = xLabels.map((label, i) =>
+        `<text x="${x(i, xLabels.length).toFixed(1)}" y="${B + 20}" fill="${C.label}" font-size="10.5" font-family="IBM Plex Mono, monospace" text-anchor="middle">${label}</text>`
+      ).join("");
+
+      const legend = seriesList.map((s) => `<span data-c="${s.legendColor}">${s.label}</span>`).join("");
+
+      return `<button class="chart-click" type="button" title="Click to drill down" data-drill="${drillLabel || title}">
+        <svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${title}">
+          <defs>${defs}</defs>
+          ${grid}
+          <line x1="${L}" y1="${B}" x2="${R}" y2="${B}" stroke="${C.grid}" stroke-width="1"/>
+          ${paths}
+          ${xAxis}
+        </svg>
+        <div class="legend">${legend}</div>
+      </button>`;
+    }
+
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+
+    function renderCharts() {
+      if (!hasCompanies()) {
+        const msg = emptyChart("Add a company to see trends built from its figures.");
+        ["#revenueChart", "#cashFlowChart", "#forecastChart", "#bubbleChart", "#riskHeatMap"].forEach((sel) => {
+          document.querySelector(sel).innerHTML = msg;
+        });
+        return;
+      }
+
+      const c = current();
+      const key = activeKey;
+
+      document.querySelector("#revenueChart").innerHTML = buildLineChart({
+        title: "Revenue vs Expenses", id: "rev", xLabels: months, drillLabel: "Revenue vs Expenses",
+        seriesList: [
+          { label: "Revenue", color: C.emerald, legendColor: "emerald", area: true, data: seededSeries(key + "-rev", Math.max(c.revenue, 600) / 6, 0.16, 6, 1.028) },
+          { label: "Expenses", color: C.amber, legendColor: "amber", data: seededSeries(key + "-exp", Math.max(c.expenses, 400) / 6, 0.12, 6, 1.012) }
+        ]
+      });
+
+      document.querySelector("#cashFlowChart").innerHTML = buildLineChart({
+        title: "Cash Flow Trend", id: "cash", xLabels: months, drillLabel: "Cash Flow Trend",
+        seriesList: [
+          { label: "Cash balance", color: C.emerald, legendColor: "emerald", area: true, data: seededSeries(key + "-cash", Math.max(c.cash, 500), 0.09, 6, 1.014) },
+          { label: "Obligations due", color: C.amber, legendColor: "amber", data: seededSeries(key + "-obl", Math.max(c.obligations, 200), 0.22, 6, 1.005) }
+        ]
+      });
+
+      const cashBase = Math.max(c.cash, 500);
+      const projBase = Math.max(c.projected, cashBase * 0.9);
+      const baseCase = [cashBase, cashBase * 0.98 + projBase * 0.02, (cashBase + projBase) / 2, projBase];
+      const downside = baseCase.map((v, i) => v * (1 - 0.045 * i));
+      document.querySelector("#forecastChart").innerHTML = buildLineChart({
+        title: "30/60/90 Forecast", id: "fcst", xLabels: ["Now", "30D", "60D", "90D"], drillLabel: "30/60/90 Forecast",
+        seriesList: [
+          { label: "Base case", color: C.blue, legendColor: "blue", area: true, data: baseCase },
+          { label: "Downside case", color: C.red, legendColor: "red", dashed: true, data: downside }
+        ]
+      });
+
+      renderBubbleChart();
+      renderHeatMap();
+    }
+
+    function renderBubbleChart() {
+      const keys = companyKeys();
+      const decorated = keys.map((k) => decorate(companies[k], k));
+      const W = 560, H = 236, L = 56, R = 530, T = 20, B = 186;
+      const maxDebt = Math.max(...decorated.map((d) => d.debt), 1000) * 1.25;
+      const healths = decorated.map((d) => d.health);
+      const hLo = Math.min(...healths) - 8, hHi = Math.max(...healths) + 8;
+      const maxObl = Math.max(...decorated.map((d) => d.obligations), 1);
+      const x = (v) => L + (v / maxDebt) * (R - L);
+      const yScale = (h) => B - ((h - hLo) / (hHi - hLo || 1)) * (B - T);
+
+      const gridV = [0.25, 0.5, 0.75, 1].map((f) => {
+        const gv = maxDebt * f;
+        return `<line x1="${x(gv).toFixed(1)}" y1="${T}" x2="${x(gv).toFixed(1)}" y2="${B}" stroke="${C.grid}" stroke-width="1" stroke-dasharray="2 5"/>
+          <text x="${x(gv).toFixed(1)}" y="${B + 18}" fill="${C.label}" font-size="10" font-family="IBM Plex Mono, monospace" text-anchor="middle">${compact(gv)}</text>`;
+      }).join("");
+
+      const bubbles = decorated.map((co) => {
+        const cx = x(co.debt), cy = yScale(co.health);
+        const r = 12 + (co.obligations / maxObl) * 16;
+        const color = co.risk === "High" ? C.red : co.risk === "Medium" ? C.amber : C.emerald;
+        return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="${color}" opacity=".22" stroke="${color}" stroke-width="1.5"/>
+          <circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="3" fill="${color}"/>
+          <text x="${cx.toFixed(1)}" y="${(cy + r + 15).toFixed(1)}" fill="${C.label}" font-size="10.5" font-family="IBM Plex Sans, sans-serif" font-weight="600" text-anchor="middle">${co.name}</text>`;
+      }).join("");
+
+      document.querySelector("#bubbleChart").innerHTML = `<button class="chart-click" type="button" data-drill="Company Bubble Chart">
+        <svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Company bubble chart">
+          ${gridV}
+          <line x1="${L}" y1="${B}" x2="${R}" y2="${B}" stroke="${C.grid}"/>
+          <line x1="${L}" y1="${T}" x2="${L}" y2="${B}" stroke="${C.grid}"/>
+          ${bubbles}
+          <text x="${R}" y="${H - 4}" fill="${C.label}" font-size="10" font-family="IBM Plex Mono, monospace" text-anchor="end">Debt exposure →</text>
+          <text x="${L}" y="12" fill="${C.label}" font-size="10" font-family="IBM Plex Mono, monospace">↑ Health score · bubble size = obligations</text>
+        </svg>
+      </button>`;
+    }
+
+    function renderHeatMap() {
+      const c = current();
+      const labels = ["Cash", "Cards", "Loans", "60+", "Tax", "Payroll", "Bank", "Insurance", "Invoices", "Forecast"];
+      document.querySelector("#riskHeatMap").innerHTML = `<div class="heatmap">${labels.map((label) => {
+        const pressure = (hashSeed(c.id + label) % 55) + c.riskScore * 0.7;
+        const cls = pressure >= 70 ? "red" : pressure >= 50 ? "amber" : pressure >= 30 ? "blue" : "";
+        return `<button class="heat ${cls}" type="button" data-drill="Risk Heat Map: ${label}">${label}</button>`;
+      }).join("")}</div>`;
+    }
+
+    /* ================= Insights ================= */
+    function renderInsights() {
+      if (!hasCompanies()) {
+        document.querySelector("#insightGrid").innerHTML = `<div class="insight" style="grid-column: 1 / -1; min-height: 100px;"><p>AI insights are generated once companies and documents are in place.</p></div>`;
+        return;
+      }
+      const c = current();
+      const insights = [
+        ["Critical Risks", c.risk === "High" ? "red" : "amber", "Resolve obligations over 60 days before they distort debt exposure.", "88%", compact(c.obligations), "3.4x"],
+        ["Recommended Actions", "amber", "Reconcile card balances, loans, and latest bank activity.", "82%", compact(Math.max(c.debt * 0.08, 1000)), "2.1x"],
+        ["Cash Opportunities", "", "Tighten payment timing and protect 90-day projected cash.", "79%", compact(Math.max(c.cash * 0.04, 1000)), "3.8x"],
+        ["Debt Optimization", "amber", "Separate current payables from high-risk debt categories.", "84%", compact(Math.max(c.debt * 0.06, 1000)), "1.9x"],
+        ["Upcoming Obligations", "", "Prioritize insurance, rent, payroll, and tax document coverage.", "76%", compact(c.obligations), "2.6x"],
+        ["Fraud Alerts", "red", "Review unusual card activity and vendor changes against source docs.", "71%", compact(Math.max(c.expenses * 0.01, 500)), "1.4x"]
+      ];
+      document.querySelector("#insightGrid").innerHTML = insights.map(([title, color, text, confidence, savings, roi]) => `
+        <button class="insight" type="button" data-drill="${title}">
+          <div><span class="priority ${color}">${color || "green"} priority</span><strong>${title}</strong><p>${text}</p></div>
+          <div class="insight-metrics"><span>Confidence ${confidence}</span><span>Estimated savings ${savings}</span><span>ROI ${roi}</span><span>View details →</span></div>
+        </button>
+      `).join("");
+    }
+
+    /* ================= KPIs ================= */
+    function spark(color, seedStr, down) {
+      const data = seededSeries(seedStr, 100, 0.24, 8, down ? 0.985 : 1.02);
+      const min = Math.min(...data), max = Math.max(...data);
+      const pts = data.map((v, i) => [i * (74 / 7), 26 - ((v - min) / (max - min || 1)) * 20]);
+      const line = smoothPath(pts);
+      const gid = "sp-" + seedStr.replace(/[^a-z0-9]/gi, "");
+      return `<svg class="spark" viewBox="0 0 74 30">
+        <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity=".3"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+        <path d="${line} L74,30 L0,30 Z" fill="url(#${gid})" stroke="none"/>
+        <path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round"/>
+      </svg>`;
+    }
+
+    function renderKpis() {
+      const strip = document.querySelector("#kpiStrip");
+      if (!hasCompanies()) {
+        strip.innerHTML = "";
+        strip.style.display = "none";
+        document.querySelector("#setupCard")?.remove();
+        document.querySelector("#mainGrid").insertAdjacentHTML("afterbegin", `
+          <section class="setup-card" id="setupCard">
+            <h2>Set up your companies</h2>
+            <p>Nothing is pre-built here. Add each company with its current figures, then upload statements and documents organized by company. Every metric, chart, and score on this page is generated from what you enter.</p>
+            <button class="button" type="button" data-action="add-company">+ Add Your First Company</button>
+          </section>`);
+        return;
+      }
+      document.querySelector("#setupCard")?.remove();
+      strip.style.display = "";
+      const c = current();
+      const data = [
+        ["Financial Health", c.health, "score /100", false],
+        ["Cash Available", compact(c.cash), "on hand", false],
+        ["Debt Exposure", compact(c.debt), "cards, loans, 60+", c.debt > c.cash * 0.5],
+        ["Projected Cash", compact(c.projected), "90-day view", c.projected < c.cash],
+        ["Credit Utilization", c.credit + "%", "across cards", c.credit > 55],
+        ["Working Capital", compact(c.workingCapital), "cash − obligations", c.workingCapital < 0],
+        ["Risk Score", c.riskScore, "lower is better", c.riskScore > 50]
+      ];
+      strip.innerHTML = data.map(([title, value, sub, down]) => `
+        <button class="kpi" type="button" title="Click for supporting calculations" data-drill="${title}">
+          <div><div class="kpi-title">${title}</div><div class="kpi-value">${value}</div></div>
+          <div class="trend"><span><strong class="${down ? "down" : "up"}">${down ? "▼ watch" : "▲ steady"}</strong><br>${sub}</span>${spark(down ? C.red : C.emerald, activeKey + "-" + title, down)}</div>
+        </button>
+      `).join("");
+    }
+
+    /* ================= Switcher ================= */
+    function renderSwitcher() {
+      const v = activeView();
+      const keys = companyKeys();
+      const pills = [`<button class="segment ${activeKey === "overall" ? "active" : ""}" type="button" data-company="overall">${v ? v.name : "Lead Ventures Overall"}</button>`]
+        .concat(keys.map((k) => `<button class="segment ${k === activeKey ? "active" : ""}" type="button" data-company="${k}">${companies[k].name}</button>`));
+      if (!v) pills.push(`<button class="segment add" type="button" data-action="add-company">+ Add Company</button>`);
+      document.querySelector("#companySwitcher").innerHTML = pills.join("");
+    }
+
+    function renderVisibility() {
+      const v = activeView();
+      document.querySelector("#insightsPanel").style.display = v && !v.showInsights ? "none" : "";
+      document.querySelector("#comparisonPanel").style.display = v && !v.showTable ? "none" : "";
+      document.querySelector("#uploadPanel").style.display = v ? "none" : "";
+      document.querySelector("#docsPanel").style.display = v && !v.showDocs ? "none" : "";
+      document.querySelector("#lowerGrid").style.display = v && !v.showDocs ? "none" : "";
+      document.querySelector("#viewsBtn").style.display = v ? "none" : "";
+      const banner = document.querySelector("#viewBanner");
+      if (v) {
+        banner.hidden = false;
+        banner.innerHTML = `<span>Presenting: <strong>${v.name}</strong> · ${v.companies.length} compan${v.companies.length === 1 ? "y" : "ies"}</span><button class="tool" type="button" id="exitView">Exit view</button>`;
+        document.querySelector("#exitView").onclick = () => {
+          activeViewId = null;
+          activeKey = "overall";
+          persistViews();
+          renderAll();
+        };
+      } else {
+        banner.hidden = true;
+        banner.innerHTML = "";
+      }
+    }
+
+    /* ================= Table ================= */
+    function riskClass(risk) {
+      return risk === "High" ? "high" : risk === "Medium" ? "medium" : "";
+    }
+
+    function renderTable() {
+      const tbody = document.querySelector("#companyRows");
+      if (!hasCompanies()) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color: var(--faint); padding: 32px;">No companies yet. Use + Add Company to get started.</td></tr>`;
+        return;
+      }
+      const query = document.querySelector("#tableSearch").value.toLowerCase();
+      const rows = companyKeys().map((key) => decorate(companies[key], key))
+        .filter((row) => row.name.toLowerCase().includes(query))
+        .sort((a, b) => {
+          const av = a[sortKey], bv = b[sortKey];
+          return String(av).localeCompare(String(bv), undefined, { numeric: true }) * sortDir;
+        });
+      tbody.innerHTML = rows.map((row) => `
+        <tr data-row="${row.id}">
+          <td><strong>${row.name}</strong></td>
+          <td>${money(row.cash)}</td>
+          <td>${money(row.debt)}</td>
+          <td>${money(row.revenue)}</td>
+          <td>${money(row.expenses)}</td>
+          <td>${money(row.profit)}</td>
+          <td><span class="health-cell"><span class="health-bar ${row.health < 75 ? "warn" : ""}"><i style="width:${row.health}%"></i></span>${row.health}</span></td>
+          <td><span class="risk-pill ${riskClass(row.risk)}">${row.risk}</span></td>
+          <td>${row.credit}%</td>
+          <td class="${row.trend === "up" ? "trend-up" : "trend-down"}">${row.trend === "up" ? "↑ Improving" : "↓ Watch"}</td>
+        </tr>
+      `).join("");
+    }
+
+    /* ================= Detail workspace ================= */
+    const tabs = ["Overview", "Cash", "Debt", "Credit Cards", "Bank Accounts", "Forecast", "Expenses", "Revenue", "AI Insights", "Documents", "Recommendations"];
+
+    function renderDetails() {
+      const editBtn = document.querySelector("#editCompanyBtn");
+      const delBtn = document.querySelector("#deleteCompanyBtn");
+      const showTools = activeKey !== "overall" && companies[activeKey] && !activeView();
+      editBtn.hidden = !showTools;
+      delBtn.hidden = !showTools;
+
+      if (!hasCompanies()) {
+        document.querySelector("#workspaceContext").textContent = "No companies";
+        document.querySelector("#detailTabs").innerHTML = "";
+        document.querySelector("#companyDetails").innerHTML = emptyChart("Company details appear here once you add your first company.");
+        return;
+      }
+      const c = current();
+      document.querySelector("#workspaceContext").textContent = c.name + " | " + activeTab;
+      document.querySelector("#detailTabs").innerHTML = tabs.map((tab) => `<button class="detail-tab ${tab === activeTab ? "active" : ""}" type="button" data-tab="${tab}">${tab}</button>`).join("");
+      document.querySelector("#companyDetails").innerHTML = `
+        <div class="detail-grid">
+          <button class="detail-box chart-click" data-drill="${activeTab}: Financial Health"><span>Financial Health</span><strong>${c.health}</strong><p>${c.name}</p></button>
+          <button class="detail-box chart-click" data-drill="${activeTab}: Cash"><span>Cash</span><strong>${compact(c.cash)}</strong><p>Projected ${compact(c.projected)}</p></button>
+          <button class="detail-box chart-click" data-drill="${activeTab}: Debt"><span>Debt</span><strong>${compact(c.debt)}</strong><p>Cards, loans, 60+ obligations</p></button>
+          <button class="detail-box chart-click" data-drill="${activeTab}: Credit Cards"><span>Credit Cards</span><strong>${c.credit}%</strong><p>Utilization</p></button>
+          <button class="detail-box chart-click" data-drill="${activeTab}: Bank Accounts"><span>Bank Accounts</span><strong>${filteredDocs().filter((doc) => doc.type === "Bank statements").length}</strong><p>Source documents</p></button>
+          <button class="detail-box chart-click" data-drill="${activeTab}: Forecast"><span>Forecast</span><strong>90D</strong><p>${compact(c.projected)} projected cash</p></button>
+          <button class="detail-box chart-click" data-drill="${activeTab}: Expenses"><span>Expenses</span><strong>${compact(c.expenses)}</strong><p>Expense analysis</p></button>
+          <button class="detail-box chart-click" data-drill="${activeTab}: Confidence"><span>Confidence</span><strong>${c.confidence}%</strong><p>Document coverage</p></button>
+        </div>
+      `;
+    }
+
+    /* ================= Documents ================= */
+    function renderDocuments() {
+      const docs = filteredDocs();
+      document.querySelector("#docCount").textContent = docs.length + (docs.length === 1 ? " file" : " files");
+      document.querySelector("#documentsList").innerHTML = docs.map((doc) => `
+        <button class="doc-row" type="button" data-doc="${doc.name}">
+          <strong>${doc.name}</strong>
+          <span class="note">${doc.companyName} | ${doc.type} | ${money(doc.amount)} | Added ${doc.added || ""}</span>
+        </button>
+      `).join("") || `<p class="note">${hasCompanies() ? "No documents assigned to this company yet. Add statements from the Upload Center to build source coverage." : "Documents appear here once companies are set up."}</p>`;
+    }
+
+    function renderUploadForm() {
+      const select = document.querySelector("#companyInput");
+      const keys = companyKeys();
+      select.innerHTML = `<option value="">Select company</option>` + keys.map((k) => `<option value="${k}">${companies[k].name}</option>`).join("");
+      if (activeKey !== "overall" && companies[activeKey]) select.value = activeKey;
+      const disabled = !hasCompanies();
+      select.disabled = disabled;
+      document.querySelector("#uploadSubmit").disabled = disabled;
+      document.querySelector("#uploadHint").hidden = !disabled;
+    }
+
+    /* ================= Company dialog ================= */
+    function openCompanyDialog(id) {
+      editingId = id || null;
+      const form = document.querySelector("#companyForm");
+      form.reset();
+      document.querySelector("#companyDialogTitle").textContent = editingId ? "Edit Company" : "Add Company";
+      document.querySelector("#deleteInDialog").hidden = !editingId;
+      if (editingId && companies[editingId]) {
+        const c = companies[editingId];
+        document.querySelector("#cName").value = c.name;
+        document.querySelector("#cCash").value = c.cash || "";
+        document.querySelector("#cDebt").value = c.debt || "";
+        document.querySelector("#cRevenue").value = c.revenue || "";
+        document.querySelector("#cExpenses").value = c.expenses || "";
+        document.querySelector("#cObligations").value = c.obligations || "";
+        document.querySelector("#cProjected").value = c.projected || "";
+        document.querySelector("#cCredit").value = c.credit || "";
+      }
+      document.querySelector("#companyDialog").showModal();
+    }
+
+    async function deleteCompany(id) {
+      if (!companies[id]) return;
+      const name = companies[id].name;
+      const docCount = docsFor(id).length;
+      const message = docCount
+        ? `Delete ${name}? Its ${docCount} document record${docCount === 1 ? "" : "s"} will also be removed.`
+        : `Delete ${name}?`;
+      if (!confirm(message)) return;
+      const { error } = await supabase.from("companies").delete().eq("id", id);
+      if (error) { toast("Delete failed: " + error.message, "error"); return; }
+      delete companies[id]; // documents cascade-delete in the database
+      documents = documents.filter((d) => d.companyId !== id);
+      if (activeKey === id) activeKey = "overall";
+      renderAll();
+    }
+
+    document.querySelector("#companyForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const num = (sel) => Math.max(0, Number(document.querySelector(sel).value) || 0);
+      const record = {
+        name: document.querySelector("#cName").value.trim(),
+        cash: num("#cCash"),
+        debt: num("#cDebt"),
+        revenue: num("#cRevenue"),
+        expenses: num("#cExpenses"),
+        obligations: num("#cObligations"),
+        projected: num("#cProjected"),
+        credit: Math.min(100, num("#cCredit"))
+      };
+      if (!record.name) return;
+      const saveBtn = document.querySelector("#saveCompany");
+      saveBtn.disabled = true;
+      try {
+        let id = editingId;
+        if (editingId) {
+          const { data, error } = await supabase.from("companies").update(record).eq("id", editingId).select().single();
+          if (error) throw error;
+          companies[editingId] = shapeCompany(data);
+          // Keep cached document company names in sync on rename
+          documents.forEach((d) => { if (d.companyId === editingId) d.companyName = record.name; });
+        } else {
+          const { data, error } = await supabase.from("companies").insert(record).select().single();
+          if (error) throw error;
+          id = data.id;
+          companies[id] = shapeCompany(data);
+        }
+        document.querySelector("#companyDialog").close();
+        activeKey = id;
+        activeTab = "Overview";
+        renderAll();
+      } catch (err) {
+        toast("Could not save company: " + (err.message || err), "error");
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+
+    document.querySelector("#cancelCompany").addEventListener("click", () => document.querySelector("#companyDialog").close());
+    document.querySelector("#closeCompanyDialog").addEventListener("click", () => document.querySelector("#companyDialog").close());
+    document.querySelector("#deleteInDialog").addEventListener("click", () => {
+      const id = editingId;
+      document.querySelector("#companyDialog").close();
+      if (id) deleteCompany(id);
+    });
+
+    /* ================= Shared views dialog ================= */
+    function renderViewDialog() {
+      const keys = allCompanyKeys();
+      const list = Object.entries(views);
+      document.querySelector("#viewList").innerHTML = list.length ? list.map(([id, v]) => `
+        <div class="view-row">
+          <strong>${v.name}</strong>
+          <div class="view-row-tools">
+            <button class="tool" type="button" data-view-activate="${id}">Present</button>
+            <button class="tool" type="button" data-view-edit="${id}">Edit</button>
+            <button class="tool danger" type="button" data-view-delete="${id}">Delete</button>
+          </div>
+          <span class="note">${v.companies.map((k) => companies[k]?.name).filter(Boolean).join(", ") || "No companies"} · Insights ${v.showInsights ? "on" : "off"} · Table ${v.showTable ? "on" : "off"} · Docs ${v.showDocs ? "on" : "off"}</span>
+        </div>
+      `).join("") : `<p class="note">No saved views yet. Build one below.</p>`;
+
+      document.querySelector("#vCompanies").innerHTML = keys.length
+        ? keys.map((k) => `<label class="check"><input type="checkbox" value="${k}" data-vcompany> ${companies[k].name}</label>`).join("")
+        : `<p class="note">Add companies first — views select from your company list.</p>`;
+
+      document.querySelectorAll("[data-view-activate]").forEach((b) => b.onclick = () => {
+        activeViewId = b.dataset.viewActivate;
+        activeKey = "overall";
+        activeTab = "Overview";
+        persistViews();
+        document.querySelector("#viewDialog").close();
+        renderAll();
+      });
+      document.querySelectorAll("[data-view-edit]").forEach((b) => b.onclick = () => fillViewForm(b.dataset.viewEdit));
+      document.querySelectorAll("[data-view-delete]").forEach((b) => b.onclick = () => {
+        const id = b.dataset.viewDelete;
+        if (!confirm(`Delete the view "${views[id].name}"?`)) return;
+        delete views[id];
+        if (activeViewId === id) { activeViewId = null; activeKey = "overall"; }
+        if (editingViewId === id) resetViewForm();
+        persistViews();
+        renderViewDialog();
+        renderAll();
+      });
+    }
+
+    function fillViewForm(id) {
+      const v = views[id];
+      if (!v) return;
+      editingViewId = id;
+      document.querySelector("#viewFormTitle").textContent = "Edit View";
+      document.querySelector("#vName").value = v.name;
+      document.querySelectorAll("[data-vcompany]").forEach((cb) => cb.checked = v.companies.includes(cb.value));
+      document.querySelector("#vInsights").checked = !!v.showInsights;
+      document.querySelector("#vTable").checked = !!v.showTable;
+      document.querySelector("#vDocs").checked = !!v.showDocs;
+    }
+
+    function resetViewForm() {
+      editingViewId = null;
+      document.querySelector("#viewFormTitle").textContent = "New View";
+      document.querySelector("#viewForm").reset();
+      document.querySelector("#vInsights").checked = true;
+      document.querySelector("#vTable").checked = true;
+      document.querySelector("#vDocs").checked = false;
+    }
+
+    document.querySelector("#viewForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const name = document.querySelector("#vName").value.trim();
+      const selected = Array.from(document.querySelectorAll("[data-vcompany]:checked")).map((cb) => cb.value);
+      if (!name) { alert("Give the view a name."); return; }
+      if (!selected.length) { alert("Select at least one company for this view."); return; }
+      const id = editingViewId || ("view-" + Date.now().toString(36));
+      views[id] = {
+        name,
+        companies: selected,
+        showInsights: document.querySelector("#vInsights").checked,
+        showTable: document.querySelector("#vTable").checked,
+        showDocs: document.querySelector("#vDocs").checked
+      };
+      persistViews();
+      resetViewForm();
+      renderViewDialog();
+      renderAll();
+    });
+
+    document.querySelector("#viewsBtn").addEventListener("click", () => {
+      resetViewForm();
+      renderViewDialog();
+      document.querySelector("#viewDialog").showModal();
+    });
+    document.querySelector("#closeViewDialog").addEventListener("click", () => document.querySelector("#viewDialog").close());
+    document.querySelector("#vReset").addEventListener("click", resetViewForm);
+
+    /* ================= Bindings ================= */
+    function bindClicks() {
+      document.querySelectorAll("[data-drill]").forEach((item) => {
+        item.onclick = () => drill(item.dataset.drill);
+      });
+      document.querySelectorAll("[data-company]").forEach((item) => {
+        item.onclick = () => {
+          activeKey = item.dataset.company;
+          activeTab = "Overview";
+          renderAll();
+        };
+      });
+      document.querySelectorAll("[data-action='add-company']").forEach((item) => {
+        item.onclick = () => openCompanyDialog(null);
+      });
+      document.querySelectorAll("[data-tab]").forEach((item) => {
+        item.onclick = () => {
+          activeTab = item.dataset.tab;
+          renderDetails();
+          bindClicks();
+        };
+      });
+      document.querySelectorAll("[data-row]").forEach((row) => {
+        row.onclick = () => {
+          activeKey = row.dataset.row;
+          activeTab = "Overview";
+          renderAll();
+        };
+      });
+      document.querySelectorAll("[data-doc]").forEach((item) => {
+        item.onclick = () => drill("Uploaded Document", item.dataset.doc);
+      });
+      document.querySelectorAll("[data-export]").forEach((item) => {
+        item.onclick = () => drill("Export " + item.dataset.export, "Prototype export control");
+      });
+    }
+
+    function renderAll() {
+      renderKpis();
+      renderSwitcher();
+      renderVisibility();
+      renderCharts();
+      renderInsights();
+      renderTable();
+      renderDetails();
+      renderDocuments();
+      renderUploadForm();
+      bindClicks();
+    }
+
+    /* ================= Static bindings ================= */
+    document.querySelector("#editCompanyBtn").addEventListener("click", () => openCompanyDialog(activeKey));
+    document.querySelector("#deleteCompanyBtn").addEventListener("click", () => deleteCompany(activeKey));
+
+    document.querySelector("#loginForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const email = document.querySelector("#loginEmail").value.trim().toLowerCase();
+      const msg = document.querySelector("#loginMsg");
+      if (!isAllowed(email)) {
+        msg.hidden = false;
+        msg.style.color = "var(--red)";
+        msg.textContent = "This email isn't authorized for the workspace. Contact your administrator.";
+        return;
+      }
+      const btn = document.querySelector("#loginBtn");
+      btn.disabled = true;
+      const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } });
+      btn.disabled = false;
+      msg.hidden = false;
+      if (error) {
+        msg.style.color = "var(--red)";
+        msg.textContent = "Could not send link: " + error.message;
+        return;
+      }
+      msg.style.color = "var(--muted)";
+      msg.textContent = "Check " + email + " for your secure sign-in link.";
+    });
+
+    document.querySelector("#tableSearch").addEventListener("input", () => {
+      renderTable();
+      bindClicks();
+    });
+
+    document.querySelectorAll("th[data-sort]").forEach((header) => {
+      header.addEventListener("click", () => {
+        const next = header.dataset.sort;
+        sortDir = sortKey === next ? sortDir * -1 : 1;
+        sortKey = next;
+        renderTable();
+        bindClicks();
+      });
+    });
+
+    document.querySelector("#uploadForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const companyId = document.querySelector("#companyInput").value;
+      if (!companies[companyId]) return;
+      const files = Array.from(document.querySelector("#fileInput").files).map((file) => file.name);
+      const record = {
+        company_id: companyId,
+        type: document.querySelector("#typeInput").value,
+        name: document.querySelector("#nameInput").value || files[0] || "Uploaded document",
+        amount: Math.max(0, Number(document.querySelector("#amountInput").value || 0)),
+        note: document.querySelector("#noteInput").value || "",
+        file_names: files
+      };
+      const submitBtn = document.querySelector("#uploadSubmit");
+      submitBtn.disabled = true;
+      try {
+        const { data, error } = await supabase.from("documents").insert(record).select().single();
+        if (error) throw error;
+        documents.unshift(shapeDoc(data));
+        form.reset();
+        renderAll();
+      } catch (err) {
+        toast("Could not add document: " + (err.message || err), "error");
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    document.querySelector("#clearUpload").addEventListener("click", () => document.querySelector("#uploadForm").reset());
+    document.querySelector("#closeDrill").addEventListener("click", () => document.querySelector("#drillDialog").close());
+    document.querySelector("#themeToggle").addEventListener("click", () => applyTheme(theme === "dark" ? "light" : "dark", true));
+    document.querySelector("#signOutBtn").addEventListener("click", async () => { await supabase.auth.signOut(); });
+
+    // Live date in header
+    const now = new Date();
+    document.querySelector("#currentDate").textContent = now.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    document.querySelector("#lastRefresh").textContent = "Opened " + now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+
+    /* ================= Auth boot =================
+       One-time cleanup wipes prototype data that used to live in localStorage
+       so stale figures don't linger on a device after the Supabase migration.
+       Theme preference is kept. */
+    function oneTimeCleanup() {
+      const FLAG = "cia-fresh-start-done";
+      try {
+        if (!localStorage.getItem(FLAG)) {
+          ["cia-companies-v1", "cia-documents-v1", "cia-views-v1", "cia-active-view"].forEach((k) => localStorage.removeItem(k));
+          localStorage.setItem(FLAG, "1");
+          views = {};
+          activeViewId = null;
+        }
+      } catch {}
+    }
+
+    let booted = false;
+    async function enterApp() {
+      document.querySelector("#loginScreen").classList.add("hidden");
+      document.querySelector("#appShell").classList.add("active");
+      if (booted) return;
+      booted = true;
+      oneTimeCleanup();
+      await loadData();
+      // Drop stale view references now that companies are loaded
+      if (activeView()) {
+        views[activeViewId].companies = views[activeViewId].companies.filter((k) => companies[k]);
+        if (!views[activeViewId].companies.length) { activeViewId = null; persistViews(); }
+      }
+      renderAll();
+    }
+
+    function showLogin() {
+      booted = false;
+      document.querySelector("#appShell").classList.remove("active");
+      document.querySelector("#loginScreen").classList.remove("hidden");
+    }
+
+    applyTheme(theme, false);
+
+    supabase.auth.onAuthStateChange(async (_event, session) => {
+      const email = session?.user?.email;
+      if (session && isAllowed(email)) {
+        await enterApp();
+      } else if (session && !isAllowed(email)) {
+        await supabase.auth.signOut();
+        toast("This account isn't authorized for the workspace.", "error");
+        showLogin();
+      } else {
+        showLogin();
+      }
+    });
+
+    // Initial session check (covers a returning session and the magic-link redirect)
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && isAllowed(session.user.email)) await enterApp();
+      else showLogin();
+    })();
+  </script>
+</body>
+</html>
