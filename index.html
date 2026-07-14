@@ -1003,13 +1003,13 @@
         <div class="brand-mark">LV</div>
         <div>
           <h1>Comptroller Intelligence Agent</h1>
-          <p>Lead Ventures secure workspace</p>
+          <p>Secure financial workspace</p>
         </div>
       </div>
-      <label>Email <input id="loginEmail" type="email" placeholder="you@leadventures.com" autocomplete="username" required></label>
+      <label>Email <input id="loginEmail" type="email" placeholder="you@yourcompany.com" autocomplete="username" required></label>
       <button class="button" type="submit" id="loginBtn">Email me a sign-in link</button>
       <p class="note" id="loginMsg" hidden></p>
-      <p class="note">Access is limited to authorized Lead Ventures accounts. We email a secure one-time sign-in link — there's no password to remember. Sessions are gated by Supabase Auth with row-level security on every table.</p>
+      <p class="note">Access is limited to authorized accounts. We email a secure one-time sign-in link — there's no password to remember. Sessions are gated by Supabase Auth with row-level security on every table.</p>
     </form>
   </section>
 
@@ -1018,10 +1018,10 @@
       <div class="header-shell">
         <div class="app-header">
           <div class="app-identity">
-            <div class="brand-mark">LV</div>
+            <div class="brand-mark" id="wsLogo">◆</div>
             <div class="app-identity-text">
-              <h1>Comptroller Intelligence Agent</h1>
-              <p>Lead Ventures</p>
+              <h1 id="wsName">My Workspace</h1>
+              <p>Comptroller Intelligence</p>
             </div>
           </div>
           <div class="header-center">
@@ -1046,7 +1046,7 @@
         <section class="page-title-row">
           <div>
             <h2>Executive Financial Intelligence Workspace</h2>
-            <p>Institutional view of cash, debt, revenue, obligations, risk, source confidence, and AI recommendations across Sean's Lead Ventures companies.</p>
+            <p>Institutional view of cash, debt, revenue, obligations, risk, source confidence, and AI recommendations across your companies.</p>
           </div>
         </section>
       </div>
@@ -1204,6 +1204,64 @@
     </main>
   </div>
 
+  <!-- ═══════════ ADMIN CONSOLE — platform operator (super admin) view ═══════════
+       The tenant-management side of the product. Shows WHO the clients are and
+       operational metadata (counts, activity dates). Client financial data is
+       unreadable to this account — enforced by database row-level security. -->
+  <div class="shell" id="adminShell">
+    <header class="top-header">
+      <div class="header-shell">
+        <div class="app-header">
+          <div class="app-identity">
+            <div class="brand-mark">CI</div>
+            <div class="app-identity-text">
+              <h1>Comptroller Intelligence</h1>
+              <p>Admin Console — Client Management</p>
+            </div>
+          </div>
+          <div class="header-center"></div>
+          <div class="header-meta">
+            <div class="date-block">
+              <strong id="adminDate"></strong>
+              <span id="adminWho"></span>
+            </div>
+            <button class="button secondary workspace-status" type="button" id="adminThemeToggle" title="Switch color theme">◐ Dark</button>
+            <button class="button secondary workspace-status" type="button" id="adminLaunchDemo" title="Opens the interactive demo (fictional data) in a new tab — perfect for sales calls">🎬 Launch Demo</button>
+            <button class="button secondary workspace-status" type="button" id="adminSettingsBtn">⚙ Settings</button>
+            <button class="button secondary workspace-status" type="button" id="adminSignOutBtn">Sign out</button>
+          </div>
+        </div>
+        <section class="page-title-row">
+          <div>
+            <h2>Client Accounts</h2>
+            <p>Provision access, monitor onboarding, and support clients. Each client's financial workspace is private to them — you see operational metadata only, never their figures.</p>
+          </div>
+        </section>
+      </div>
+    </header>
+    <main>
+      <section class="kpi-strip" id="adminKpis" aria-label="Platform stats" style="grid-template-columns:repeat(4,minmax(0,1fr))"></section>
+
+      <section class="panel span-12" style="margin-top:14px">
+        <div class="panel-head"><h3>Add a Client</h3><span class="help-tip" title="Adding an email lets that person sign in with a magic link. On first sign-in they get their own private financial workspace as a founder/owner.">?</span></div>
+        <div class="panel-body">
+          <form id="addClientForm" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+            <label style="flex:1;min-width:240px">Client email <input id="clientEmail" type="email" placeholder="founder@company.com" required></label>
+            <button class="button" type="submit">+ Provision Client Access</button>
+          </form>
+          <p class="panel-help">They'll sign in at this same URL with a secure email link — no password. Their workspace starts empty and belongs entirely to them.</p>
+        </div>
+      </section>
+
+      <section class="panel span-12" style="margin-top:14px">
+        <div class="panel-head"><h3>Clients</h3><div class="panel-tools"><span id="clientCount"></span></div></div>
+        <div class="panel-body">
+          <div id="clientGrid" class="detail-grid"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
   <dialog id="drillDialog">
     <div class="modal">
       <div class="modal-head">
@@ -1256,6 +1314,22 @@
           <p id="settingsWho"></p>
         </div>
         <button class="close" type="button" id="closeSettings">✕</button>
+      </div>
+
+      <div class="modal-section" id="brandingSection">
+        <h3>Workspace Branding <span class="help-tip" title="Your company name and logo appear in the header of your workspace. Each account brands its own workspace — clients never see each other's branding.">?</span></h3>
+        <div class="form-grid">
+          <label>Company / workspace name <input id="brandName" placeholder="Example: Back2Learn Holdings" maxlength="60"></label>
+          <label>Logo (PNG/JPG/SVG, under 300 KB) <input id="brandLogo" type="file" accept="image/*"></label>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
+          <div class="brand-mark" id="brandPreview" style="flex:none">◆</div>
+          <p class="note" style="margin:0">Preview — this is how the header mark will look. Leave the logo empty to use your initials.</p>
+          <button class="tool danger" type="button" id="brandLogoClear" style="margin-left:auto">Remove logo</button>
+        </div>
+        <div class="modal-actions" style="margin-top:10px">
+          <button class="button" type="button" id="brandSave">Save Branding</button>
+        </div>
       </div>
 
       <div class="modal-section">
@@ -1381,6 +1455,17 @@
        member. Owners see everything they own; members see only granted
        companies filtered to granted info types and panels. */
     let ME = { id: null, email: null, role: "owner" };
+    /* Per-tenant white-label branding (Settings → Workspace Branding) */
+    let BRANDING = { org_name: "", org_logo: "" };
+    function applyBranding() {
+      const nameEl = document.querySelector("#wsName");
+      const logoEl = document.querySelector("#wsLogo");
+      if (nameEl) nameEl.textContent = BRANDING.org_name || "My Workspace";
+      if (logoEl) logoEl.innerHTML = BRANDING.org_logo
+        ? `<img src="${BRANDING.org_logo}" alt="${BRANDING.org_name || "Company"} logo" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">`
+        : (BRANDING.org_name ? BRANDING.org_name.trim().split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase() : "◆");
+      document.title = (BRANDING.org_name ? BRANDING.org_name + " — " : "") + "Comptroller Intelligence";
+    }
     let MY_GRANTS = [];
     const INFO_TYPES = [
       ["cash", "Cash on hand"], ["debt", "Debt"], ["revenue", "Revenue"],
@@ -1471,14 +1556,18 @@
     async function loadData() {
       companies = {};
       documents = [];
-      const [cRes, dRes, pRes, gRes] = await Promise.all([
+      const [cRes, dRes, pRes, gRes, sRes] = await Promise.all([
         supabase.from("companies").select("*"),
         supabase.from("documents").select("*").order("created_at", { ascending: false }),
         supabase.from("profiles").select("*").eq("id", ME.id).maybeSingle(),
-        supabase.from("workspace_members").select("*").ilike("member_email", ME.email || "")
+        supabase.from("workspace_members").select("*").ilike("member_email", ME.email || ""),
+        supabase.from("user_settings").select("*").eq("user_id", ME.id).maybeSingle()
       ]);
       if (pRes && pRes.data) ME.role = pRes.data.role || "owner";
       MY_GRANTS = ((gRes && gRes.data) || []).filter((g) => g.owner !== ME.id);
+      BRANDING.org_name = (sRes && sRes.data && sRes.data.org_name) || "";
+      BRANDING.org_logo = (sRes && sRes.data && sRes.data.org_logo) || "";
+      applyBranding();
       if (cRes.error) toast("Could not load companies: " + cRes.error.message, "error");
       (cRes.data || []).forEach((r) => { companies[r.id] = shapeCompany(r); });
       if (dRes.error) toast("Could not load documents: " + dRes.error.message, "error");
@@ -1547,7 +1636,7 @@
       const v = activeView();
       const c = {
         id: "overall",
-        name: v ? v.name : "Lead Ventures Overall",
+        name: v ? v.name : (BRANDING.org_name ? BRANDING.org_name + " — All Companies" : "All Companies"),
         cash: sum("cash"), debt: sum("debt"), revenue: sum("revenue"), expenses: sum("expenses"),
         obligations: sum("obligations"), projected: sum("projected"),
         credit: avg("credit", keys.map((k) => companies[k].credit || 0))
@@ -1904,7 +1993,7 @@
     function renderSwitcher() {
       const v = activeView();
       const keys = companyKeys();
-      const pills = [`<button class="segment ${activeKey === "overall" ? "active" : ""}" type="button" data-company="overall">${v ? v.name : "Lead Ventures Overall"}</button>`]
+      const pills = [`<button class="segment ${activeKey === "overall" ? "active" : ""}" type="button" data-company="overall">${v ? v.name : (BRANDING.org_name ? BRANDING.org_name + " — All Companies" : "All Companies")}</button>`]
         .concat(keys.map((k) => `<button class="segment ${k === activeKey ? "active" : ""}" type="button" data-company="${k}">${companies[k].name}</button>`));
       if (!v) pills.push(`<button class="segment add" type="button" data-action="add-company">+ Add Company</button>`);
       document.querySelector("#companySwitcher").innerHTML = pills.join("");
@@ -2304,9 +2393,14 @@
       document.querySelector("#aiKey").value = (s && s.ai_api_key) || "";
       document.querySelector("#aiKey").type = "password";
       document.querySelector("#aiKeyShow").textContent = "Show key";
+      /* Branding */
+      document.querySelector("#brandingSection").hidden = isPureMember() || ME.role === "super_admin";
+      document.querySelector("#brandName").value = (s && s.org_name) || BRANDING.org_name || "";
+      pendingLogo = (s && s.org_logo) || BRANDING.org_logo || "";
+      renderBrandPreview();
       /* Access grants (owner) */
       const accessSection = document.querySelector("#accessSection");
-      accessSection.hidden = isPureMember();
+      accessSection.hidden = isPureMember() || ME.role === "super_admin";
       if (!accessSection.hidden) await renderGrantUI();
       /* Accounts (super admin) */
       const accounts = document.querySelector("#accountsSection");
@@ -2347,6 +2441,40 @@
         `<label class="check"><input type="checkbox" data-gpanel="${v}" ${v !== "docs" ? "checked" : ""}> ${l}</label>`).join("");
     }
 
+    /* Branding editor */
+    let pendingLogo = "";
+    function renderBrandPreview() {
+      const nm = document.querySelector("#brandName").value.trim();
+      document.querySelector("#brandPreview").innerHTML = pendingLogo
+        ? `<img src="${pendingLogo}" alt="Logo preview" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">`
+        : (nm ? nm.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase() : "◆");
+    }
+    document.querySelector("#brandName").addEventListener("input", renderBrandPreview);
+    document.querySelector("#brandLogoClear").addEventListener("click", () => { pendingLogo = ""; document.querySelector("#brandLogo").value = ""; renderBrandPreview(); });
+    document.querySelector("#brandLogo").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (file.size > 300 * 1024) { toast("Logo must be under 300 KB — try a smaller or compressed image.", "error"); event.target.value = ""; return; }
+      const reader = new FileReader();
+      reader.onload = () => { pendingLogo = reader.result; renderBrandPreview(); };
+      reader.readAsDataURL(file);
+    });
+    document.querySelector("#brandSave").addEventListener("click", async () => {
+      const { error } = await supabase.from("user_settings").upsert({
+        user_id: ME.id,
+        org_name: document.querySelector("#brandName").value.trim(),
+        org_logo: pendingLogo,
+        updated_at: new Date().toISOString()
+      });
+      if (error) { toast("Could not save branding: " + error.message, "error"); return; }
+      BRANDING.org_name = document.querySelector("#brandName").value.trim();
+      BRANDING.org_logo = pendingLogo;
+      applyBranding();
+      renderSwitcher();
+      bindClicks();
+      toast("Workspace branding saved.");
+    });
+
     document.querySelector("#settingsBtn").addEventListener("click", openSettings);
     document.querySelector("#closeSettings").addEventListener("click", () => document.querySelector("#settingsDialog").close());
     document.querySelector("#aiKeyShow").addEventListener("click", () => {
@@ -2381,6 +2509,86 @@
       document.querySelector("#grantEmail").value = "";
       renderGrantUI();
     });
+
+
+    /* ================= Admin Console (super admin) ================= */
+    function showAdmin() {
+      document.querySelector("#loadingScreen").classList.add("hidden");
+      document.querySelector("#loginScreen").classList.add("hidden");
+      document.querySelector("#appShell").classList.remove("active");
+      document.querySelector("#adminShell").classList.add("active");
+      document.querySelector("#adminDate").textContent = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      document.querySelector("#adminWho").textContent = ME.email;
+      const t = document.querySelector("#adminThemeToggle");
+      if (t) t.textContent = theme === "dark" ? "◐ Dark" : "◑ Light";
+    }
+
+    async function loadAdminConsole() {
+      showAdmin();
+      const { data: stats, error } = await supabase.rpc("admin_tenant_stats");
+      const grid = document.querySelector("#clientGrid");
+      if (error) {
+        grid.innerHTML = `<p class="note">Could not load clients: ${error.message}. Make sure comptroller-upgrade.sql (section 7) has been run.</p>`;
+        return;
+      }
+      const clients = (stats || []).filter((s) => s.role !== "super_admin");
+      const admins = (stats || []).filter((s) => s.role === "super_admin");
+      const totCompanies = clients.reduce((n, s) => n + Number(s.company_count || 0), 0);
+      const totDocs = clients.reduce((n, s) => n + Number(s.document_count || 0), 0);
+      const monthAgo = Date.now() - 30 * 864e5;
+      const activeMonth = clients.filter((s) => new Date(s.last_activity).getTime() > monthAgo).length;
+      document.querySelector("#adminKpis").innerHTML = [
+        ["Clients", clients.length, "founder accounts"],
+        ["Active (30d)", activeMonth, "with recent activity"],
+        ["Companies tracked", totCompanies, "across all clients"],
+        ["Documents processed", totDocs, "across all clients"],
+      ].map(([t, v, s]) => `<div class="kpi" style="cursor:default"><div><div class="kpi-title">${t}</div><div class="kpi-value">${v}</div></div><div class="trend"><span>${s}</span></div></div>`).join("");
+      document.querySelector("#clientCount").textContent = clients.length + " client" + (clients.length === 1 ? "" : "s");
+      grid.innerHTML = clients.map((s) => `
+        <div class="detail-box" style="cursor:default;text-align:left">
+          <span>Client</span>
+          <strong style="font-size:15px;word-break:break-all">${s.email}</strong>
+          <p>Joined ${new Date(s.joined).toLocaleDateString()} · ${s.company_count} compan${s.company_count == 1 ? "y" : "ies"} · ${s.document_count} document${s.document_count == 1 ? "" : "s"}<br>
+          Last activity ${new Date(s.last_activity).toLocaleDateString()}</p>
+          <button class="tool danger" type="button" data-unprovision="${s.email}" style="margin-top:8px">Revoke sign-in</button>
+        </div>`).join("") || `<p class="note">No client accounts yet. Provision the first one above.</p>`;
+      if (admins.length) {
+        grid.innerHTML += admins.map((s) => `
+          <div class="detail-box" style="cursor:default;text-align:left;border-style:dashed">
+            <span>Platform admin</span>
+            <strong style="font-size:15px;word-break:break-all">${s.email}</strong>
+            <p>Joined ${new Date(s.joined).toLocaleDateString()} · console access only</p>
+          </div>`).join("");
+      }
+      document.querySelectorAll("[data-unprovision]").forEach((btn) => {
+        btn.onclick = async () => {
+          const email = btn.dataset.unprovision;
+          if (!confirm(`Revoke sign-in for ${email}? Their data stays intact in the database, but they can no longer sign in until re-provisioned.`)) return;
+          const { error: dErr } = await supabase.from("signin_allowlist").delete().eq("email", email);
+          toast(dErr ? "Could not revoke: " + dErr.message : "Sign-in revoked for " + email, dErr ? "error" : undefined);
+          loadAdminConsole();
+        };
+      });
+    }
+
+    document.querySelector("#addClientForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const email = document.querySelector("#clientEmail").value.trim().toLowerCase();
+      if (!email) return;
+      const { error } = await supabase.from("signin_allowlist").upsert({ email, added_by: ME.id }, { onConflict: "email" });
+      if (error) { toast("Could not provision: " + error.message, "error"); return; }
+      toast(email + " can now sign in. Their private workspace is created on first sign-in.");
+      document.querySelector("#clientEmail").value = "";
+      loadAdminConsole();
+    });
+    document.querySelector("#adminSignOutBtn").addEventListener("click", async () => { await supabase.auth.signOut(); window.location.reload(); });
+    document.querySelector("#adminThemeToggle").addEventListener("click", () => {
+      applyTheme(theme === "dark" ? "light" : "dark", false);
+      document.querySelector("#adminThemeToggle").textContent = theme === "dark" ? "◐ Dark" : "◑ Light";
+    });
+    document.querySelector("#adminSettingsBtn").addEventListener("click", openSettings);
+    /* Demo lives at demo.html alongside the app — change this path if you host it elsewhere */
+    document.querySelector("#adminLaunchDemo").addEventListener("click", () => window.open("demo.html", "_blank"));
 
     /* ================= Static bindings ================= */
     document.querySelector("#editCompanyBtn").addEventListener("click", () => openCompanyDialog(activeKey));
@@ -2580,6 +2788,14 @@
       if (booted) return;
       booted = true;
       oneTimeCleanup();
+      /* Platform operator: fetch role first, then route to the Admin Console.
+         Super admins never see the client financial workspace. */
+      const { data: myProf } = await supabase.from("profiles").select("role").eq("id", ME.id).maybeSingle();
+      if (myProf && myProf.role === "super_admin") {
+        ME.role = "super_admin";
+        await loadAdminConsole();
+        return;
+      }
       await loadData();
       // Drop stale view references now that companies are loaded
       if (activeView()) {
