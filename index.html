@@ -107,6 +107,38 @@
     .login.hidden, .shell { display: none; }
     .shell.active { display: block; }
 
+    /* ---------- Loading (third initial state) ---------- */
+    .loading {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 32px;
+      background:
+        radial-gradient(900px 600px at 70% 20%, rgba(217, 171, 82, .10), transparent 60%),
+        linear-gradient(150deg, #0A1020, #0D1630 65%, #0A1020);
+    }
+
+    [data-theme="light"] .loading {
+      background:
+        radial-gradient(900px 600px at 70% 20%, rgba(169, 127, 44, .08), transparent 60%),
+        linear-gradient(150deg, #EDF1F8, #FFFFFF 65%, #EDF1F8);
+    }
+
+    .loading.hidden { display: none; }
+
+    .loading .brand-mark {
+      width: 60px;
+      height: 60px;
+      font-size: 22px;
+      border-radius: 14px;
+      animation: brandPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes brandPulse {
+      0%, 100% { opacity: .5; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+
     .login-card {
       width: min(440px, 100%);
       background: linear-gradient(180deg, var(--panel-2), var(--panel));
@@ -547,6 +579,19 @@
     .heat.amber { background: rgba(245, 185, 79, .12); border-color: rgba(245, 185, 79, .4); color: var(--amber); }
     .heat.red { background: rgba(248, 113, 104, .13); border-color: rgba(248, 113, 104, .45); color: var(--red); }
     .heat.blue { background: rgba(108, 155, 242, .12); border-color: rgba(108, 155, 242, .4); color: var(--blue); }
+    .heat.gray { background: rgba(130, 140, 160, .10); border-color: rgba(130, 140, 160, .35); color: var(--faint); }
+    .heat small { display: block; font-size: 9px; font-weight: 500; opacity: .8; margin-top: 2px; text-transform: none; letter-spacing: 0; }
+    .heat-legend { margin-top: 10px; }
+    .legend [data-c="gray"]::before { background: rgba(130,140,160,.8); }
+    .panel-help { font-size: 11px; color: var(--faint); line-height: 1.5; margin: 8px 2px 0; }
+    .sensitive-zone { border: 1.5px dashed rgba(245, 185, 79, .55); background:
+      repeating-linear-gradient(45deg, rgba(245,185,79,.03) 0 12px, transparent 12px 24px), var(--panel); }
+    .sensitive-badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 3px 9px; border-radius: 99px; margin-left: 8px; background: rgba(245,185,79,.14); border: 1px solid rgba(245,185,79,.45); color: var(--amber); vertical-align: middle; }
+    .upload-mode { display: flex; gap: 8px; padding: 10px 16px 0; }
+    .mode-btn { flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: 600 12px var(--sans); cursor: pointer; }
+    .mode-btn.active { border-color: rgba(245,185,79,.55); background: rgba(245,185,79,.10); color: var(--amber); }
+    .view-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 6px; font-size: 12.5px; }
+    .help-tip { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; border: 1px solid var(--line); color: var(--faint); font-size: 10px; font-weight: 700; cursor: help; margin-left: 6px; flex: none; }
 
     /* ---------- AI insights ---------- */
     .insights {
@@ -602,6 +647,8 @@
 
     .priority.red { background: rgba(248, 113, 104, .13); border-color: rgba(248, 113, 104, .4); color: var(--red); }
     .priority.amber { background: rgba(245, 185, 79, .12); border-color: rgba(245, 185, 79, .4); color: var(--amber); }
+    .priority.blue { background: rgba(108, 155, 242, .12); border-color: rgba(108, 155, 242, .4); color: var(--blue); }
+    .priority.gray { background: rgba(130, 140, 160, .10); border-color: rgba(130, 140, 160, .35); color: var(--faint); }
 
     .insight strong { display: block; margin: 12px 0 7px; font-size: 15px; line-height: 1.3; font-weight: 600; }
     .insight p { color: var(--muted); font-size: 12px; }
@@ -946,7 +993,11 @@
   </style>
 </head>
 <body>
-  <section class="login" id="loginScreen" aria-label="Secure login">
+  <section class="loading" id="loadingScreen" aria-label="Loading workspace" aria-live="polite">
+    <div class="brand-mark">LV</div>
+  </section>
+
+  <section class="login hidden" id="loginScreen" aria-label="Secure login">
     <form class="login-card" id="loginForm">
       <div class="brand">
         <div class="brand-mark">LV</div>
@@ -983,6 +1034,7 @@
             </div>
             <button class="button secondary workspace-status" type="button" id="themeToggle" title="Switch color theme" aria-label="Switch color theme">◐ Dark</button>
             <button class="button secondary workspace-status" type="button" id="viewsBtn">Views</button>
+            <button class="button secondary workspace-status" type="button" id="settingsBtn">⚙ Settings</button>
             <button class="button secondary workspace-status" type="button" data-drill="Workspace status">Workspace Status</button>
             <button class="button secondary workspace-status" type="button" id="signOutBtn">Sign out</button>
           </div>
@@ -1031,6 +1083,8 @@
           <span><span class="priority red">Red</span> Critical — act immediately</span>
           <span><span class="priority amber">Amber</span> Needs attention this cycle</span>
           <span><span class="priority">Green</span> Healthy — optimization opportunity</span>
+          <span><span class="priority blue">Blue</span> Informational — forecast base case, not a risk level</span>
+          <span><span class="priority gray">Gray</span> No data yet — add figures or documents to activate</span>
         </div>
         <div class="insight-grid" id="insightGrid"></div>
       </section>
@@ -1080,8 +1134,16 @@
       </section>
 
       <section class="lower-grid" id="lowerGrid">
-        <section class="panel" id="uploadPanel">
-          <div class="panel-head"><h3>Upload Center</h3><button class="tool" type="button" id="clearUpload">Clear</button></div>
+        <section class="panel sensitive-zone" id="uploadPanel">
+          <div class="panel-head">
+            <h3>Upload Center <span class="sensitive-badge">⚠ Sensitive input zone</span></h3>
+            <button class="tool" type="button" id="clearUpload">Clear</button>
+          </div>
+          <p class="panel-help" style="margin:0 16px">Everything entered here changes the numbers on this page. Double-check amounts before submitting.</p>
+          <div class="upload-mode" role="tablist">
+            <button type="button" class="mode-btn active" id="modeUpload">📄 Upload document</button>
+            <button type="button" class="mode-btn" id="modeManual">✎ Manual entry / adjustment</button>
+          </div>
           <div class="panel-body">
             <form class="upload-grid" id="uploadForm">
               <label>Company
@@ -1089,7 +1151,29 @@
                   <option value="">Select company</option>
                 </select>
               </label>
-              <label>Document type
+              <div class="full manual-only" hidden>
+                <div class="upload-grid" style="padding:0">
+                  <label>What are you updating?
+                    <select id="manualField">
+                      <option value="cash">Cash on hand</option>
+                      <option value="debt">Debt</option>
+                      <option value="revenue">Revenue (YTD)</option>
+                      <option value="expenses">Expenses (YTD)</option>
+                      <option value="obligations">Obligations due (60+)</option>
+                      <option value="projected">Projected cash (90-day)</option>
+                      <option value="credit">Credit utilization %</option>
+                    </select>
+                  </label>
+                  <label>How?
+                    <select id="manualOp">
+                      <option value="add">+ Add to current value</option>
+                      <option value="subtract">− Subtract from current value</option>
+                      <option value="set">= Set to this exact value</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+              <label class="doc-only">Document type
                 <select id="typeInput" required>
                   <option value="">Select type</option>
                   <option>Credit card statements</option>
@@ -1103,9 +1187,9 @@
                   <option>Tax documents</option>
                 </select>
               </label>
-              <label>Document name <input id="nameInput" placeholder="Example: June card statement" required></label>
+              <label class="doc-only">Document name <input id="nameInput" placeholder="Example: June card statement" required></label>
               <label>Amount <input id="amountInput" type="number" min="0" step="100" placeholder="0"></label>
-              <label class="full">File <input id="fileInput" type="file" multiple required></label>
+              <label class="full doc-only">File <input id="fileInput" type="file" multiple required></label>
               <label class="full">Analysis note <textarea id="noteInput" placeholder="Source context, assumptions, or comptroller note"></textarea></label>
               <button class="button full" type="submit" id="uploadSubmit">Add Document to Analysis Queue</button>
               <p class="note full" id="uploadHint" hidden>Add a company first — document uploads are organized by company.</p>
@@ -1164,6 +1248,69 @@
     </form>
   </dialog>
 
+  <dialog id="settingsDialog">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h2>Settings</h2>
+          <p id="settingsWho"></p>
+        </div>
+        <button class="close" type="button" id="closeSettings">✕</button>
+      </div>
+
+      <div class="modal-section">
+        <h3>AI Integration <span class="help-tip" title="The key powers AI analysis of your uploaded documents. It is stored in your private settings row in the database and only your signed-in account can read it.">?</span></h3>
+        <div class="form-grid">
+          <label>Provider
+            <select id="aiProvider">
+              <option value="claude">Claude (Anthropic)</option>
+              <option value="gemini">Gemini (Google)</option>
+              <option value="chatgpt">ChatGPT (OpenAI)</option>
+            </select>
+          </label>
+          <label>API key
+            <input id="aiKey" type="password" placeholder="Paste your API key" autocomplete="off">
+          </label>
+        </div>
+        <p class="note">Get a key from your provider's console (Anthropic, Google AI Studio, or OpenAI). Each account stores its own key — yours is never shared with other users.</p>
+        <div class="modal-actions" style="margin-top:8px">
+          <button class="button secondary" type="button" id="aiKeyShow">Show key</button>
+          <button class="button" type="button" id="aiSave">Save AI Settings</button>
+        </div>
+      </div>
+
+      <div class="modal-section" id="accessSection">
+        <h3>User Access <span class="help-tip" title="Grant other people sign-in access to specific companies and choose exactly which information types and panels they can see. They get a read-only view — only you can edit your data.">?</span></h3>
+        <p class="note">People you add here can sign in with their email (magic link) and see only what you grant — read-only. You stay the only person who can edit.</p>
+        <div class="view-list" id="grantList"></div>
+        <div class="form-grid" style="margin-top:12px">
+          <label class="full">Email address <input id="grantEmail" type="email" placeholder="person@example.com"></label>
+        </div>
+        <div class="modal-section" style="padding-top:8px">
+          <h3>Companies they can see</h3>
+          <div class="check-grid" id="grantCompanies"></div>
+        </div>
+        <div class="modal-section">
+          <h3>Information types they can see</h3>
+          <div class="check-grid" id="grantTypes"></div>
+        </div>
+        <div class="modal-section">
+          <h3>Panels they can see</h3>
+          <div class="check-grid" id="grantPanels"></div>
+        </div>
+        <div class="modal-actions">
+          <button class="button" type="button" id="grantSave">Grant Access</button>
+        </div>
+      </div>
+
+      <div class="modal-section" id="accountsSection" hidden>
+        <h3>Accounts (Super Admin) <span class="help-tip" title="You can see who has an account and when it was created. You cannot open or view any tenant's data — that is enforced by database row-level security, not just hidden in this screen.">?</span></h3>
+        <p class="note">Tenant list only. Their companies, documents, and figures are not visible to you — the database itself blocks it.</p>
+        <div class="view-list" id="accountList"></div>
+      </div>
+    </div>
+  </dialog>
+
   <dialog id="viewDialog">
     <form class="modal" id="viewForm">
       <div class="modal-head">
@@ -1206,7 +1353,7 @@
 
     /* ================= Data layer =================
        Companies and documents live in Supabase (Postgres) — see
-       supabase/migrations/0001_init_companies_documents.sql. Only the raw
+       comptroller-upgrade.sql (tenant isolation + access control). Only the raw
        figures the user types are stored; health score, risk level, working
        capital, trend, and confidence stay derived in this file, never stored.
        Shared Views and theme remain in localStorage (presentation/preference).
@@ -1219,11 +1366,50 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJlaWx2eWRnZ3Npdnp3ZHVucnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NjAwMzMsImV4cCI6MjA5OTUzNjAzM30.sbCM3esc7T27HqyHEe5UfeWC4cRT0KpqXi1P1AkXc5I"; // public anon key — safe in client (gated by RLS)
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    /* Only these addresses may request a sign-in link. Keep in sync with the
-       app_members table in the SQL migration — that table is the real
-       enforcement (via RLS); this list just avoids emailing links to strangers. */
-    const ALLOWED_EMAILS = ["danniejenn@gmail.com", "sean@back2learn.com"];
-    const isAllowed = (email) => !!email && ALLOWED_EMAILS.includes(String(email).trim().toLowerCase());
+    /* Sign-in permission now lives in the database (signin_allowlist table,
+       managed from Settings → User Access). The app checks it through a
+       security-definer function so the list itself is never exposed. */
+    async function isAllowed(email) {
+      if (!email) return false;
+      const { data, error } = await supabase.rpc("email_allowed", { p_email: String(email).trim().toLowerCase() });
+      if (error) { console.error("email_allowed:", error.message); return false; }
+      return data === true;
+    }
+
+    /* ── Identity & permissions (hydrated after sign-in) ──
+       ME: this account's profile. MY_GRANTS: access grants where I'm the
+       member. Owners see everything they own; members see only granted
+       companies filtered to granted info types and panels. */
+    let ME = { id: null, email: null, role: "owner" };
+    let MY_GRANTS = [];
+    const INFO_TYPES = [
+      ["cash", "Cash on hand"], ["debt", "Debt"], ["revenue", "Revenue"],
+      ["expenses", "Expenses"], ["obligations", "Obligations (60+)"],
+      ["projected", "Projected cash"], ["credit", "Credit utilization"]
+    ];
+    const PANELS = [["charts", "Charts row"], ["insights", "AI Executive Insights"], ["table", "Comparison Table"], ["docs", "Documents list"]];
+
+    const ownsCompany = (k) => !!companies[k] && companies[k].owner === ME.id;
+    const ownsAny = () => Object.keys(companies).some((k) => ownsCompany(k));
+    const isPureMember = () => !ownsAny() && MY_GRANTS.length > 0;
+
+    /* Union of granted info types / panels across all grants naming me. */
+    function grantedSet(field) {
+      const s = new Set();
+      MY_GRANTS.forEach((g) => (g[field] || []).forEach((t) => s.add(t)));
+      return s;
+    }
+    /* can('cash') — true when the current context permits seeing that type. */
+    function can(type) {
+      if (activeKey !== "overall" && ownsCompany(activeKey)) return true;
+      if (activeKey === "overall" && ownsAny()) return true;   // owner context
+      if (!MY_GRANTS.length) return true;                       // no grants in play → own workspace
+      return grantedSet("info_types").has(type);
+    }
+    function canPanel(panel) {
+      if (ownsAny() || !MY_GRANTS.length) return true;
+      return grantedSet("panels").has(panel);
+    }
 
     function load(key, fallback) {
       try {
@@ -1259,6 +1445,7 @@
 
     function shapeCompany(row) {
       return {
+        owner: row.owner,
         name: row.name,
         cash: Number(row.cash), debt: Number(row.debt), revenue: Number(row.revenue),
         expenses: Number(row.expenses), obligations: Number(row.obligations),
@@ -1284,10 +1471,14 @@
     async function loadData() {
       companies = {};
       documents = [];
-      const [cRes, dRes] = await Promise.all([
+      const [cRes, dRes, pRes, gRes] = await Promise.all([
         supabase.from("companies").select("*"),
-        supabase.from("documents").select("*").order("created_at", { ascending: false })
+        supabase.from("documents").select("*").order("created_at", { ascending: false }),
+        supabase.from("profiles").select("*").eq("id", ME.id).maybeSingle(),
+        supabase.from("workspace_members").select("*").ilike("member_email", ME.email || "")
       ]);
+      if (pRes && pRes.data) ME.role = pRes.data.role || "owner";
+      MY_GRANTS = ((gRes && gRes.data) || []).filter((g) => g.owner !== ME.id);
       if (cRes.error) toast("Could not load companies: " + cRes.error.message, "error");
       (cRes.data || []).forEach((r) => { companies[r.id] = shapeCompany(r); });
       if (dRes.error) toast("Could not load documents: " + dRes.error.message, "error");
@@ -1519,36 +1710,43 @@
       const c = current();
       const key = activeKey;
 
-      document.querySelector("#revenueChart").innerHTML = buildLineChart({
+      const gate = (sel, ...types) => {
+        const el = document.querySelector(sel);
+        const ok = types.every((t) => can(t));
+        el.closest("section.panel").style.display = ok && canPanel("charts") ? "" : "none";
+        return ok;
+      };
+
+      gate("#revenueChart", "revenue", "expenses") && (document.querySelector("#revenueChart").innerHTML = buildLineChart({
         title: "Revenue vs Expenses", id: "rev", xLabels: months, drillLabel: "Revenue vs Expenses",
         seriesList: [
           { label: "Revenue", color: C.emerald, legendColor: "emerald", area: true, data: seededSeries(key + "-rev", Math.max(c.revenue, 600) / 6, 0.16, 6, 1.028) },
           { label: "Expenses", color: C.amber, legendColor: "amber", data: seededSeries(key + "-exp", Math.max(c.expenses, 400) / 6, 0.12, 6, 1.012) }
         ]
-      });
+      }));
 
-      document.querySelector("#cashFlowChart").innerHTML = buildLineChart({
+      gate("#cashFlowChart", "cash", "obligations") && (document.querySelector("#cashFlowChart").innerHTML = buildLineChart({
         title: "Cash Flow Trend", id: "cash", xLabels: months, drillLabel: "Cash Flow Trend",
         seriesList: [
           { label: "Cash balance", color: C.emerald, legendColor: "emerald", area: true, data: seededSeries(key + "-cash", Math.max(c.cash, 500), 0.09, 6, 1.014) },
           { label: "Obligations due", color: C.amber, legendColor: "amber", data: seededSeries(key + "-obl", Math.max(c.obligations, 200), 0.22, 6, 1.005) }
         ]
-      });
+      }));
 
       const cashBase = Math.max(c.cash, 500);
       const projBase = Math.max(c.projected, cashBase * 0.9);
       const baseCase = [cashBase, cashBase * 0.98 + projBase * 0.02, (cashBase + projBase) / 2, projBase];
       const downside = baseCase.map((v, i) => v * (1 - 0.045 * i));
-      document.querySelector("#forecastChart").innerHTML = buildLineChart({
+      gate("#forecastChart", "cash", "projected") && (document.querySelector("#forecastChart").innerHTML = buildLineChart({
         title: "30/60/90 Forecast", id: "fcst", xLabels: ["Now", "30D", "60D", "90D"], drillLabel: "30/60/90 Forecast",
         seriesList: [
-          { label: "Base case", color: C.blue, legendColor: "blue", area: true, data: baseCase },
-          { label: "Downside case", color: C.red, legendColor: "red", dashed: true, data: downside }
+          { label: "Base case (expected)", color: C.blue, legendColor: "blue", area: true, data: baseCase },
+          { label: "Downside case (stress)", color: C.red, legendColor: "red", dashed: true, data: downside }
         ]
-      });
+      }) + `<p class="panel-help"><strong style="color:var(--blue)">Blue — Base case:</strong> the expected path from today's cash to your entered 90-day projection. <strong style="color:var(--red)">Red (dashed) — Downside case:</strong> the same path stress-tested with a compounding 4.5% haircut per period, showing where you land if collections slow or costs rise.</p>`);
 
-      renderBubbleChart();
-      renderHeatMap();
+      if (gate("#bubbleChart", "debt", "obligations")) renderBubbleChart();
+      if (gate("#riskHeatMap", "cash", "debt", "obligations", "credit")) renderHeatMap();
     }
 
     function renderBubbleChart() {
@@ -1589,14 +1787,46 @@
       </button>`;
     }
 
+    /* Heat map is now DATA-DRIVEN: every tile is computed from the figures you
+       entered (or from document coverage), so editing a company updates it
+       immediately. Tiles with no supporting data show gray "No data" instead of
+       a random color. */
+    function heatTiles(c) {
+      const docTypes = new Set(filteredDocs().map((d) => d.type));
+      const ratio = (num, den) => num / Math.max(den, 1);
+      const byRatio = (r, redAt, amberAt) => r >= redAt ? "red" : r >= amberAt ? "amber" : "green";
+      const docTile = (label, type) => docTypes.has(type)
+        ? { label, cls: "green", why: `${type} on file — coverage looks healthy.` }
+        : { label, cls: "gray",  why: `No ${type.toLowerCase()} uploaded yet. Add them in the Upload Center to activate this tile.` };
+      return [
+        { label: "Cash", cls: byRatio(ratio(c.obligations, c.cash), 1, 0.6),
+          why: `Obligations are ${Math.round(ratio(c.obligations, c.cash) * 100)}% of cash on hand. Red when obligations exceed cash, amber above 60%.` },
+        { label: "Cards", cls: c.credit >= 70 ? "red" : c.credit >= 40 ? "amber" : "green",
+          why: `Credit utilization is ${c.credit}%. Red at 70%+, amber at 40%+.` },
+        { label: "Loans", cls: byRatio(ratio(c.debt, c.cash), 1, 0.5),
+          why: `Total debt is ${Math.round(ratio(c.debt, c.cash) * 100)}% of cash. Red when debt exceeds cash, amber above 50%.` },
+        { label: "60+", cls: c.obligations <= 0 ? "green" : byRatio(ratio(c.obligations, c.cash), 0.8, 0.4),
+          why: `${compact(c.obligations)} due within 60+ days against ${compact(c.cash)} cash.` },
+        docTile("Tax", "Tax documents"),
+        docTile("Payroll", "Payroll"),
+        docTile("Bank", "Bank statements"),
+        docTile("Insurance", "Insurance"),
+        docTile("Invoices", "Invoices"),
+        { label: "Forecast", cls: c.projected >= c.cash ? "green" : c.projected >= c.cash * 0.9 ? "amber" : "red",
+          why: `90-day projected cash ${compact(c.projected)} vs ${compact(c.cash)} today. Red when the projection falls more than 10% below current cash.` },
+      ];
+    }
+
     function renderHeatMap() {
       const c = current();
-      const labels = ["Cash", "Cards", "Loans", "60+", "Tax", "Payroll", "Bank", "Insurance", "Invoices", "Forecast"];
-      document.querySelector("#riskHeatMap").innerHTML = `<div class="heatmap">${labels.map((label) => {
-        const pressure = (hashSeed(c.id + label) % 55) + c.riskScore * 0.7;
-        const cls = pressure >= 70 ? "red" : pressure >= 50 ? "amber" : pressure >= 30 ? "blue" : "";
-        return `<button class="heat ${cls}" type="button" data-drill="Risk Heat Map: ${label}">${label}</button>`;
-      }).join("")}</div>`;
+      const tiles = heatTiles(c);
+      document.querySelector("#riskHeatMap").innerHTML = `<div class="heatmap">${tiles.map((t) =>
+        `<button class="heat ${t.cls === "green" ? "" : t.cls}" type="button" title="${t.why}" data-drill="Risk Heat Map: ${t.label}">${t.label}${t.cls === "gray" ? "<small>No data</small>" : ""}</button>`
+      ).join("")}</div>
+      <div class="legend heat-legend">
+        <span data-c="emerald">Healthy</span><span data-c="amber">Needs attention</span><span data-c="red">Critical</span><span data-c="gray">No data yet</span>
+      </div>
+      <p class="panel-help">Tiles are calculated from your entered figures and uploaded documents — they update the moment you edit a company. Hover any tile for the exact calculation.</p>`;
     }
 
     /* ================= Insights ================= */
@@ -1654,14 +1884,14 @@
       strip.style.display = "";
       const c = current();
       const data = [
-        ["Financial Health", c.health, "score /100", false],
-        ["Cash Available", compact(c.cash), "on hand", false],
-        ["Debt Exposure", compact(c.debt), "cards, loans, 60+", c.debt > c.cash * 0.5],
-        ["Projected Cash", compact(c.projected), "90-day view", c.projected < c.cash],
-        ["Credit Utilization", c.credit + "%", "across cards", c.credit > 55],
-        ["Working Capital", compact(c.workingCapital), "cash − obligations", c.workingCapital < 0],
-        ["Risk Score", c.riskScore, "lower is better", c.riskScore > 50]
-      ];
+        ["Financial Health", c.health, "score /100", false, null],
+        ["Cash Available", compact(c.cash), "on hand", false, "cash"],
+        ["Debt Exposure", compact(c.debt), "cards, loans, 60+", c.debt > c.cash * 0.5, "debt"],
+        ["Projected Cash", compact(c.projected), "90-day view", c.projected < c.cash, "projected"],
+        ["Credit Utilization", c.credit + "%", "across cards", c.credit > 55, "credit"],
+        ["Working Capital", compact(c.workingCapital), "cash − obligations", c.workingCapital < 0, "cash"],
+        ["Risk Score", c.riskScore, "lower is better", c.riskScore > 50, null]
+      ].filter(([,,,, type]) => !type || can(type));
       strip.innerHTML = data.map(([title, value, sub, down]) => `
         <button class="kpi" type="button" title="Click for supporting calculations" data-drill="${title}">
           <div><div class="kpi-title">${title}</div><div class="kpi-value">${value}</div></div>
@@ -1682,12 +1912,17 @@
 
     function renderVisibility() {
       const v = activeView();
-      document.querySelector("#insightsPanel").style.display = v && !v.showInsights ? "none" : "";
-      document.querySelector("#comparisonPanel").style.display = v && !v.showTable ? "none" : "";
-      document.querySelector("#uploadPanel").style.display = v ? "none" : "";
-      document.querySelector("#docsPanel").style.display = v && !v.showDocs ? "none" : "";
-      document.querySelector("#lowerGrid").style.display = v && !v.showDocs ? "none" : "";
-      document.querySelector("#viewsBtn").style.display = v ? "none" : "";
+      const member = isPureMember();
+      document.querySelector("#insightsPanel").style.display = (v && !v.showInsights) || !canPanel("insights") ? "none" : "";
+      document.querySelector("#comparisonPanel").style.display = (v && !v.showTable) || !canPanel("table") ? "none" : "";
+      document.querySelector("#uploadPanel").style.display = v || member ? "none" : "";
+      document.querySelector("#docsPanel").style.display = (v && !v.showDocs) || !canPanel("docs") ? "none" : "";
+      document.querySelector("#lowerGrid").style.display = (v && !v.showDocs) || (member && !canPanel("docs")) ? "none" : "";
+      document.querySelector("#viewsBtn").style.display = v || member ? "none" : "";
+      /* Charts row gating for members */
+      document.querySelectorAll("#revenueChart, #cashFlowChart, #forecastChart, #bubbleChart, #riskHeatMap").forEach((el) => {
+        el.closest("section.panel").style.display = canPanel("charts") ? "" : "none";
+      });
       const banner = document.querySelector("#viewBanner");
       if (v) {
         banner.hidden = false;
@@ -1722,6 +1957,7 @@
           const av = a[sortKey], bv = b[sortKey];
           return String(av).localeCompare(String(bv), undefined, { numeric: true }) * sortDir;
         });
+
       tbody.innerHTML = rows.map((row) => `
         <tr data-row="${row.id}">
           <td><strong>${row.name}</strong></td>
@@ -1736,15 +1972,26 @@
           <td class="${row.trend === "up" ? "trend-up" : "trend-down"}">${row.trend === "up" ? "↑ Improving" : "↓ Watch"}</td>
         </tr>
       `).join("");
+
+      /* Column-level permission: hide columns whose info type isn't granted.
+         Column order: 1 Company 2 Cash 3 Debt 4 Revenue 5 Expenses 6 Profit
+         7 Health 8 Risk 9 Credit 10 Trend */
+      const colTypes = { 2: "cash", 3: "debt", 4: "revenue", 5: "expenses", 6: "revenue", 9: "credit" };
+      Object.entries(colTypes).forEach(([idx, type]) => {
+        const show = can(type) && (idx !== "6" || can("expenses"));
+        document.querySelectorAll(`#comparisonPanel table tr > *:nth-child(${idx})`).forEach((cell) => {
+          cell.style.display = show ? "" : "none";
+        });
+      });
     }
 
     /* ================= Detail workspace ================= */
-    const tabs = ["Overview", "Cash", "Debt", "Credit Cards", "Bank Accounts", "Forecast", "Expenses", "Revenue", "AI Insights", "Documents", "Recommendations"];
+    const tabs = ["Overview", "AI Insights", "Documents", "Recommendations"];
 
     function renderDetails() {
       const editBtn = document.querySelector("#editCompanyBtn");
       const delBtn = document.querySelector("#deleteCompanyBtn");
-      const showTools = activeKey !== "overall" && companies[activeKey] && !activeView();
+      const showTools = activeKey !== "overall" && companies[activeKey] && !activeView() && ownsCompany(activeKey);
       editBtn.hidden = !showTools;
       delBtn.hidden = !showTools;
 
@@ -1757,18 +2004,43 @@
       const c = current();
       document.querySelector("#workspaceContext").textContent = c.name + " | " + activeTab;
       document.querySelector("#detailTabs").innerHTML = tabs.map((tab) => `<button class="detail-tab ${tab === activeTab ? "active" : ""}" type="button" data-tab="${tab}">${tab}</button>`).join("");
-      document.querySelector("#companyDetails").innerHTML = `
-        <div class="detail-grid">
-          <button class="detail-box chart-click" data-drill="${activeTab}: Financial Health"><span>Financial Health</span><strong>${c.health}</strong><p>${c.name}</p></button>
-          <button class="detail-box chart-click" data-drill="${activeTab}: Cash"><span>Cash</span><strong>${compact(c.cash)}</strong><p>Projected ${compact(c.projected)}</p></button>
-          <button class="detail-box chart-click" data-drill="${activeTab}: Debt"><span>Debt</span><strong>${compact(c.debt)}</strong><p>Cards, loans, 60+ obligations</p></button>
-          <button class="detail-box chart-click" data-drill="${activeTab}: Credit Cards"><span>Credit Cards</span><strong>${c.credit}%</strong><p>Utilization</p></button>
-          <button class="detail-box chart-click" data-drill="${activeTab}: Bank Accounts"><span>Bank Accounts</span><strong>${filteredDocs().filter((doc) => doc.type === "Bank statements").length}</strong><p>Source documents</p></button>
-          <button class="detail-box chart-click" data-drill="${activeTab}: Forecast"><span>Forecast</span><strong>90D</strong><p>${compact(c.projected)} projected cash</p></button>
-          <button class="detail-box chart-click" data-drill="${activeTab}: Expenses"><span>Expenses</span><strong>${compact(c.expenses)}</strong><p>Expense analysis</p></button>
-          <button class="detail-box chart-click" data-drill="${activeTab}: Confidence"><span>Confidence</span><strong>${c.confidence}%</strong><p>Document coverage</p></button>
+      const target = document.querySelector("#companyDetails");
+      if (activeTab === "Overview") {
+        const boxes = [
+          [null, "Overview: Financial Health", "Financial Health", `${c.health}`, c.name],
+          ["cash", "Overview: Cash", "Cash", compact(c.cash), `Projected ${compact(c.projected)}`],
+          ["debt", "Overview: Debt", "Debt", compact(c.debt), "Cards, loans, 60+ obligations"],
+          ["credit", "Overview: Credit Cards", "Credit Cards", `${c.credit}%`, "Utilization"],
+          [null, "Overview: Bank Accounts", "Bank Accounts", `${filteredDocs().filter((doc) => doc.type === "Bank statements").length}`, "Source documents"],
+          ["projected", "Overview: Forecast", "Forecast", "90D", `${compact(c.projected)} projected cash`],
+          ["expenses", "Overview: Expenses", "Expenses", compact(c.expenses), "Expense analysis"],
+          [null, "Overview: Confidence", "Confidence", `${c.confidence}%`, "Document coverage"]
+        ].filter(([type]) => !type || can(type));
+        target.innerHTML = `
+        <div class="detail-grid">${boxes.map(([, drill, label, big, sub]) =>
+          `<button class="detail-box chart-click" data-drill="${drill}"><span>${label}</span><strong>${big}</strong><p>${sub}</p></button>`).join("")}
         </div>
-      `;
+        ${ownsCompany(activeKey) || activeKey === "overall" ? `<p class="panel-help">Use the Edit button (top right) to change any figure, or the Upload Center's Manual entry mode for quick adjustments with an audit trail.</p>` : `<p class="panel-help">Read-only view — this company is shared with you by its owner.</p>`}`;
+      } else if (activeTab === "AI Insights") {
+        const worst = heatTiles(c).filter((t) => t.cls === "red" || t.cls === "amber");
+        target.innerHTML = worst.length
+          ? `<div class="detail-grid">${worst.map((t) => `<button class="detail-box chart-click" data-drill="Risk Heat Map: ${t.label}"><span>${t.label}</span><strong style="color:${t.cls === "red" ? "var(--red)" : "var(--amber)"}">${t.cls === "red" ? "Critical" : "Watch"}</strong><p>${t.why}</p></button>`).join("")}</div>`
+          : `<p class="panel-help">No red or amber risk signals for ${c.name} right now. The full intelligence feed is in the AI Executive Insights panel above.</p>`;
+      } else if (activeTab === "Documents") {
+        const docs = filteredDocs();
+        target.innerHTML = docs.length
+          ? docs.map((doc) => `<button class="doc-row" type="button" data-doc="${doc.name}"><strong>${doc.name}</strong><span class="note">${doc.type} | ${money(doc.amount)} | Added ${doc.added || ""}</span></button>`).join("")
+          : `<p class="panel-help">No documents for ${c.name} yet. Add statements in the Upload Center below — each one raises the confidence score.</p>`;
+      } else if (activeTab === "Recommendations") {
+        const recs = [];
+        if (c.workingCapital < 0) recs.push(["Rebuild working capital", `Working capital is ${compact(c.workingCapital)} (cash minus 60+ day obligations). Prioritize collections or delay non-critical spend until this is positive.`]);
+        if (c.credit > 55) recs.push(["Pay down card balances", `Credit utilization is ${c.credit}%. Bringing it under 40% improves both the risk score and real-world borrowing terms.`]);
+        if (c.debt > c.cash) recs.push(["Reduce debt exposure", `Debt (${compact(c.debt)}) exceeds cash on hand (${compact(c.cash)}). Review which obligations can be restructured or retired first.`]);
+        if (c.projected < c.cash) recs.push(["Investigate the 90-day dip", `Projected cash (${compact(c.projected)}) is below today's cash — identify what's driving the expected drawdown.`]);
+        if (c.confidence < 70) recs.push(["Increase document coverage", `Source confidence is ${c.confidence}%. Upload bank, card, payroll, and insurance statements so scores rest on documents, not just typed figures.`]);
+        if (!recs.length) recs.push(["Position is healthy", "No urgent recommendations. Keep statements current each month so the analysis stays trustworthy."]);
+        target.innerHTML = `<div class="detail-grid">${recs.map(([t, p]) => `<div class="detail-box"><span>Recommendation</span><strong style="font-size:15px">${t}</strong><p>${p}</p></div>`).join("")}</div>`;
+      }
     }
 
     /* ================= Documents ================= */
@@ -1785,7 +2057,9 @@
 
     function renderUploadForm() {
       const select = document.querySelector("#companyInput");
-      const keys = companyKeys();
+      const keys = companyKeys().filter((k) => ownsCompany(k));
+      /* Members without their own companies get no upload targets — the
+         Upload Center hides for them entirely (see renderVisibility). */
       select.innerHTML = `<option value="">Select company</option>` + keys.map((k) => `<option value="${k}">${companies[k].name}</option>`).join("");
       if (activeKey !== "overall" && companies[activeKey]) select.value = activeKey;
       const disabled = !hasCompanies();
@@ -2020,6 +2294,94 @@
       bindClicks();
     }
 
+
+    /* ================= Settings ================= */
+    async function openSettings() {
+      document.querySelector("#settingsWho").textContent = ME.email + (ME.role === "super_admin" ? " · Super Admin" : "");
+      /* AI key */
+      const { data: s } = await supabase.from("user_settings").select("*").eq("user_id", ME.id).maybeSingle();
+      document.querySelector("#aiProvider").value = (s && s.ai_provider) || "claude";
+      document.querySelector("#aiKey").value = (s && s.ai_api_key) || "";
+      document.querySelector("#aiKey").type = "password";
+      document.querySelector("#aiKeyShow").textContent = "Show key";
+      /* Access grants (owner) */
+      const accessSection = document.querySelector("#accessSection");
+      accessSection.hidden = isPureMember();
+      if (!accessSection.hidden) await renderGrantUI();
+      /* Accounts (super admin) */
+      const accounts = document.querySelector("#accountsSection");
+      accounts.hidden = ME.role !== "super_admin";
+      if (!accounts.hidden) {
+        const { data: profs, error } = await supabase.from("profiles").select("*").order("created_at");
+        document.querySelector("#accountList").innerHTML = error
+          ? `<p class="note">Could not load accounts: ${error.message}</p>`
+          : (profs || []).map((p) => `<div class="view-row"><span><strong>${p.email}</strong> · ${p.role}</span><span class="note">since ${new Date(p.created_at).toLocaleDateString()}</span></div>`).join("") || `<p class="note">No accounts yet.</p>`;
+      }
+      document.querySelector("#settingsDialog").showModal();
+    }
+
+    async function renderGrantUI() {
+      /* Existing grants */
+      const { data: grants } = await supabase.from("workspace_members").select("*").eq("owner", ME.id).order("created_at");
+      document.querySelector("#grantList").innerHTML = (grants || []).map((g) => {
+        const cos = g.all_companies ? "All companies" : `${(g.company_ids || []).length} compan${(g.company_ids || []).length === 1 ? "y" : "ies"}`;
+        return `<div class="view-row"><span><strong>${g.member_email}</strong> · ${cos} · ${(g.info_types || []).length} info types · ${(g.panels || []).length} panels</span><button class="tool danger" type="button" data-revoke="${g.id}" data-revoke-email="${g.member_email}">Revoke</button></div>`;
+      }).join("") || `<p class="note">No one has been granted access yet.</p>`;
+      document.querySelectorAll("[data-revoke]").forEach((btn) => {
+        btn.onclick = async () => {
+          if (!confirm(`Revoke all access for ${btn.dataset.revokeEmail}? They will no longer be able to sign in.`)) return;
+          await supabase.from("workspace_members").delete().eq("id", btn.dataset.revoke);
+          await supabase.from("signin_allowlist").delete().eq("email", btn.dataset.revokeEmail.toLowerCase());
+          toast("Access revoked for " + btn.dataset.revokeEmail);
+          renderGrantUI();
+        };
+      });
+      /* Grant form choices */
+      const owned = allCompanyKeys().filter((k) => ownsCompany(k));
+      document.querySelector("#grantCompanies").innerHTML =
+        `<label class="check"><input type="checkbox" id="gAll"> <strong>All companies</strong> (including future ones)</label>` +
+        owned.map((k) => `<label class="check"><input type="checkbox" data-gco="${k}"> ${companies[k].name}</label>`).join("");
+      document.querySelector("#grantTypes").innerHTML = INFO_TYPES.map(([v, l]) =>
+        `<label class="check"><input type="checkbox" data-gtype="${v}" checked> ${l}</label>`).join("");
+      document.querySelector("#grantPanels").innerHTML = PANELS.map(([v, l]) =>
+        `<label class="check"><input type="checkbox" data-gpanel="${v}" ${v !== "docs" ? "checked" : ""}> ${l}</label>`).join("");
+    }
+
+    document.querySelector("#settingsBtn").addEventListener("click", openSettings);
+    document.querySelector("#closeSettings").addEventListener("click", () => document.querySelector("#settingsDialog").close());
+    document.querySelector("#aiKeyShow").addEventListener("click", () => {
+      const input = document.querySelector("#aiKey");
+      const showing = input.type === "text";
+      input.type = showing ? "password" : "text";
+      document.querySelector("#aiKeyShow").textContent = showing ? "Show key" : "Hide key";
+    });
+    document.querySelector("#aiSave").addEventListener("click", async () => {
+      const { error } = await supabase.from("user_settings").upsert({
+        user_id: ME.id,
+        ai_provider: document.querySelector("#aiProvider").value,
+        ai_api_key: document.querySelector("#aiKey").value.trim(),
+        updated_at: new Date().toISOString()
+      });
+      toast(error ? "Could not save AI settings: " + error.message : "AI settings saved.", error ? "error" : undefined);
+    });
+    document.querySelector("#grantSave").addEventListener("click", async () => {
+      const email = document.querySelector("#grantEmail").value.trim().toLowerCase();
+      if (!email || !email.includes("@")) { toast("Enter a valid email address.", "error"); return; }
+      const allCos = document.querySelector("#gAll")?.checked || false;
+      const companyIds = Array.from(document.querySelectorAll("[data-gco]:checked")).map((cb) => cb.dataset.gco);
+      if (!allCos && !companyIds.length) { toast("Pick at least one company (or All companies).", "error"); return; }
+      const infoTypes = Array.from(document.querySelectorAll("[data-gtype]:checked")).map((cb) => cb.dataset.gtype);
+      const panels = Array.from(document.querySelectorAll("[data-gpanel]:checked")).map((cb) => cb.dataset.gpanel);
+      const { error: gErr } = await supabase.from("workspace_members").upsert(
+        { owner: ME.id, member_email: email, all_companies: allCos, company_ids: companyIds, info_types: infoTypes, panels: panels },
+        { onConflict: "owner,member_email" });
+      if (gErr) { toast("Could not save grant: " + gErr.message, "error"); return; }
+      await supabase.from("signin_allowlist").upsert({ email: email, added_by: ME.id }, { onConflict: "email" });
+      toast(`Access granted — ${email} can now sign in with a magic link.`);
+      document.querySelector("#grantEmail").value = "";
+      renderGrantUI();
+    });
+
     /* ================= Static bindings ================= */
     document.querySelector("#editCompanyBtn").addEventListener("click", () => openCompanyDialog(activeKey));
     document.querySelector("#deleteCompanyBtn").addEventListener("click", () => deleteCompany(activeKey));
@@ -2028,14 +2390,16 @@
       event.preventDefault();
       const email = document.querySelector("#loginEmail").value.trim().toLowerCase();
       const msg = document.querySelector("#loginMsg");
-      if (!isAllowed(email)) {
+      const btn = document.querySelector("#loginBtn");
+      btn.disabled = true;
+      const allowed = await isAllowed(email);
+      if (!allowed) {
+        btn.disabled = false;
         msg.hidden = false;
         msg.style.color = "var(--red)";
         msg.textContent = "This email isn't authorized for the workspace. Contact your administrator.";
         return;
       }
-      const btn = document.querySelector("#loginBtn");
-      btn.disabled = true;
       const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } });
       btn.disabled = false;
       msg.hidden = false;
@@ -2063,30 +2427,78 @@
       });
     });
 
+    /* ── Upload Center mode toggle: document upload vs manual adjustment ── */
+    let uploadMode = "doc";
+    const FIELD_LABELS = { cash: "Cash on hand", debt: "Debt", revenue: "Revenue (YTD)", expenses: "Expenses (YTD)", obligations: "Obligations due (60+)", projected: "Projected cash (90-day)", credit: "Credit utilization %" };
+    function setUploadMode(mode) {
+      uploadMode = mode;
+      document.querySelector("#modeUpload").classList.toggle("active", mode === "doc");
+      document.querySelector("#modeManual").classList.toggle("active", mode === "manual");
+      document.querySelectorAll("#uploadPanel .doc-only").forEach((el) => { el.hidden = mode !== "doc"; });
+      document.querySelectorAll("#uploadPanel .manual-only").forEach((el) => { el.hidden = mode !== "manual"; });
+      // required flags only apply to the visible mode
+      document.querySelector("#typeInput").required = mode === "doc";
+      document.querySelector("#nameInput").required = mode === "doc";
+      document.querySelector("#fileInput").required = mode === "doc";
+      document.querySelector("#amountInput").required = mode === "manual";
+      document.querySelector("#uploadSubmit").textContent = mode === "doc" ? "Add Document to Analysis Queue" : "Apply Adjustment";
+    }
+    document.querySelector("#modeUpload").addEventListener("click", () => setUploadMode("doc"));
+    document.querySelector("#modeManual").addEventListener("click", () => setUploadMode("manual"));
+
     document.querySelector("#uploadForm").addEventListener("submit", async (event) => {
       event.preventDefault();
       const form = event.currentTarget;
       const companyId = document.querySelector("#companyInput").value;
       if (!companies[companyId]) return;
-      const files = Array.from(document.querySelector("#fileInput").files).map((file) => file.name);
-      const record = {
-        company_id: companyId,
-        type: document.querySelector("#typeInput").value,
-        name: document.querySelector("#nameInput").value || files[0] || "Uploaded document",
-        amount: Math.max(0, Number(document.querySelector("#amountInput").value || 0)),
-        note: document.querySelector("#noteInput").value || "",
-        file_names: files
-      };
       const submitBtn = document.querySelector("#uploadSubmit");
       submitBtn.disabled = true;
       try {
-        const { data, error } = await supabase.from("documents").insert(record).select().single();
-        if (error) throw error;
-        documents.unshift(shapeDoc(data));
+        if (uploadMode === "manual") {
+          /* Manual adjustment: update the company figure AND log an audit
+             record in documents so there's a paper trail of every change. */
+          const field = document.querySelector("#manualField").value;
+          const op = document.querySelector("#manualOp").value;
+          const amount = Number(document.querySelector("#amountInput").value || 0);
+          if (!(amount > 0)) throw new Error("Enter an amount greater than 0.");
+          const before = Number(companies[companyId][field] || 0);
+          let after = op === "add" ? before + amount : op === "subtract" ? before - amount : amount;
+          after = Math.max(0, after);
+          if (field === "credit") after = Math.min(100, after);
+          const { error: upErr } = await supabase.from("companies").update({ [field]: after }).eq("id", companyId);
+          if (upErr) throw upErr;
+          companies[companyId][field] = after;
+          const opWord = op === "add" ? "+" : op === "subtract" ? "−" : "set to";
+          const audit = {
+            company_id: companyId,
+            type: "Manual adjustment",
+            name: `${FIELD_LABELS[field]}: ${opWord} ${amount.toLocaleString()} (now ${after.toLocaleString()})`,
+            amount: amount,
+            note: (document.querySelector("#noteInput").value || "") + ` [was ${before.toLocaleString()}]`,
+            file_names: []
+          };
+          const { data, error } = await supabase.from("documents").insert(audit).select().single();
+          if (!error && data) documents.unshift(shapeDoc(data));
+          toast(`${FIELD_LABELS[field]} updated: ${before.toLocaleString()} → ${after.toLocaleString()}`);
+        } else {
+          const files = Array.from(document.querySelector("#fileInput").files).map((file) => file.name);
+          const record = {
+            company_id: companyId,
+            type: document.querySelector("#typeInput").value,
+            name: document.querySelector("#nameInput").value || files[0] || "Uploaded document",
+            amount: Math.max(0, Number(document.querySelector("#amountInput").value || 0)),
+            note: document.querySelector("#noteInput").value || "",
+            file_names: files
+          };
+          const { data, error } = await supabase.from("documents").insert(record).select().single();
+          if (error) throw error;
+          documents.unshift(shapeDoc(data));
+        }
         form.reset();
+        setUploadMode(uploadMode);
         renderAll();
       } catch (err) {
-        toast("Could not add document: " + (err.message || err), "error");
+        toast("Could not save: " + (err.message || err), "error");
       } finally {
         submitBtn.disabled = false;
       }
@@ -2118,8 +2530,51 @@
       } catch {}
     }
 
+    /* Synchronous "are we probably signed in?" check, used to pick the initial
+       screen so the login card never flashes on a magic-link return. True when
+       the URL carries magic-link tokens, or a Supabase session already sits in
+       localStorage (key shape: sb-<ref>-auth-token). */
+    function hasAuthTokensInUrl() {
+      const frag = (window.location.hash || "") + "&" + (window.location.search || "");
+      return /(access_token|refresh_token|provider_token)=|[?&#]code=|[?&#]type=(magiclink|recovery|signup|invite|email_change)|[?&#]error/.test(frag);
+    }
+    function hasStoredSession() {
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith("sb-") && k.endsWith("-auth-token") && localStorage.getItem(k)) return true;
+        }
+      } catch {}
+      return false;
+    }
+    const likelyAuthenticated = () => hasAuthTokensInUrl() || hasStoredSession();
+
+    /* Once the session is established, strip auth tokens from the URL so a
+       refresh doesn't re-process them. Runs only after enterApp (i.e. after
+       supabase-js has already consumed the tokens). Safe to call repeatedly. */
+    function cleanAuthFromUrl() {
+      try {
+        if (hasAuthTokensInUrl()) {
+          window.history.replaceState({}, document.title, window.location.origin + window.location.pathname);
+        }
+      } catch {}
+    }
+
     let booted = false;
+    function showLoading() {
+      document.querySelector("#loadingScreen").classList.remove("hidden");
+      document.querySelector("#loginScreen").classList.add("hidden");
+      document.querySelector("#appShell").classList.remove("active");
+    }
+    function showLogin() {
+      booted = false;
+      document.querySelector("#loadingScreen").classList.add("hidden");
+      document.querySelector("#appShell").classList.remove("active");
+      document.querySelector("#loginScreen").classList.remove("hidden");
+    }
     async function enterApp() {
+      cleanAuthFromUrl();
+      document.querySelector("#loadingScreen").classList.add("hidden");
       document.querySelector("#loginScreen").classList.add("hidden");
       document.querySelector("#appShell").classList.add("active");
       if (booted) return;
@@ -2134,32 +2589,34 @@
       renderAll();
     }
 
-    function showLogin() {
-      booted = false;
-      document.querySelector("#appShell").classList.remove("active");
-      document.querySelector("#loginScreen").classList.remove("hidden");
-    }
-
     applyTheme(theme, false);
 
-    supabase.auth.onAuthStateChange(async (_event, session) => {
-      const email = session?.user?.email;
-      if (session && isAllowed(email)) {
+    /* Third initial state — never default to the login screen. Show the branded
+       loader while we might be authenticated; only fall back to login once
+       getSession / onAuthStateChange confirms there's no session. */
+    if (likelyAuthenticated()) showLoading();
+    else showLogin();
+
+    async function handleSession(session) {
+      if (!session) { showLogin(); return; }
+      ME.id = session.user.id;
+      ME.email = (session.user.email || "").toLowerCase();
+      const allowed = await isAllowed(ME.email);
+      if (allowed) {
         await enterApp();
-      } else if (session && !isAllowed(email)) {
+      } else {
         await supabase.auth.signOut();
         toast("This account isn't authorized for the workspace.", "error");
         showLogin();
-      } else {
-        showLogin();
       }
-    });
+    }
+
+    supabase.auth.onAuthStateChange(async (_event, session) => { await handleSession(session); });
 
     // Initial session check (covers a returning session and the magic-link redirect)
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session && isAllowed(session.user.email)) await enterApp();
-      else showLogin();
+      await handleSession(session);
     })();
   </script>
 </body>
